@@ -16,6 +16,4 @@ dependencies:
     path: ../graph_layout
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^2.0.0

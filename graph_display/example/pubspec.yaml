@@ -6,10 +6,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  graph_layout:
+    path: ../../graph_layout
   graph_display:
     path: ../
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^2.0.0
