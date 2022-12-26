@@ -3,9 +3,10 @@ library graph_display;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:graph_layout/graph_layout.dart';
+
+import 'src/common.dart';
 
 class SpringGraphDisplay extends StatefulWidget {
   final Graph graphTopology;
@@ -30,6 +31,13 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
   );
   final stopwatch = Stopwatch();
 
+  /// The nodes which are currently constrained and whose position is not
+  /// affected by the spring simulation.
+  final _constrainedNodes = <Node>{};
+
+  /// The node which is currently being dragged by the user.
+  Node? _draggedNode;
+
   @override
   initState() {
     super.initState();
@@ -41,7 +49,7 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       stopwatch.start();
       setState(() {
-        graphState.iterate();
+        graphState.iterate(constrainedNodes: _constrainedNodes);
       });
       stopwatch.stop();
       if (kDebugMode) {
@@ -56,12 +64,46 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
     return ConstrainedBox(
       constraints: const BoxConstraints.expand(),
       child: FittedBox(
-        child: CustomPaint(
-          painter: _GraphPainter(
-            edgeList: widget.graphTopology.edgeList,
-            nodes: graphState.nodeLayout,
+        child: GestureDetector(
+          // If a node is tapped, toggle whether or not it is constrained.
+          onTapUp: (details) {
+            final panPosition = details.localPosition.toVector2();
+            final closestNode = graphState.nodeLayout.closest(panPosition);
+            if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
+                0.05) {
+              _constrainedNodes.toggle(closestNode);
+            }
+          },
+          // If a node drag is started, set [_draggedNode] to the dragged node
+          // and ensure it is constrained.
+          onPanStart: (details) {
+            final panPosition = details.localPosition.toVector2();
+            final closestNode = graphState.nodeLayout.closest(panPosition);
+            if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
+                0.05) {
+              _draggedNode = closestNode;
+              _constrainedNodes.add(closestNode);
+            }
+          },
+          // If a node is being dragged, update its position.
+          onPanUpdate: (details) {
+            if (_draggedNode != null) {
+              graphState.nodeLayout[_draggedNode!] =
+                  details.localPosition.toVector2();
+            }
+          },
+          // Reset [_draggedNode] when the drag is stopped, but keep the
+          // previously-dragged node constrained.
+          onPanEnd: (details) {
+            _draggedNode = null;
+          },
+          child: CustomPaint(
+            painter: _GraphPainter(
+              edgeList: widget.graphTopology.edgeList,
+              nodes: graphState.nodeLayout,
+            ),
+            size: const Size.square(1),
           ),
-          size: const Size.square(1),
         ),
       ),
     );

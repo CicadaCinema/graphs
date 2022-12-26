@@ -26,7 +26,7 @@ class SpringSystem {
   ///
   /// Returns [true] if running one iteration does not change the position of
   /// each node by much in each axis.
-  bool iterate() {
+  bool iterate({Set<Node> constrainedNodes = const {}}) {
     // TODO: Make these constants named parameters with default values?
 
     // TODO: Tune these constants.
@@ -42,8 +42,12 @@ class SpringSystem {
     // Initially assume this layout is stable.
     var isStable = true;
 
+    // Nodes which are free to move.
+    final unconstrainedNodes =
+        adjacencyList.keys.toSet().difference(constrainedNodes);
+
     // Calculate the forces on each node in the graph.
-    for (final node in adjacencyList.keys) {
+    for (final node in unconstrainedNodes) {
       final nodePosition = nodeLayout[node]!;
       var forceOnThisNode = Vector2.zero();
 
@@ -103,7 +107,7 @@ class SpringSystem {
   }
 
   /// Repeatedly run [iterate] until a stable layout is obtained.
-  void iterateUntilStable() {
-    while (!iterate()) {}
+  void iterateUntilStable({Set<Node> constrainedNodes = const {}}) {
+    while (!iterate(constrainedNodes: constrainedNodes)) {}
   }
 }
