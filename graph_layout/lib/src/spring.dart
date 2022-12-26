@@ -4,8 +4,7 @@ import 'package:vector_math/vector_math.dart';
 
 import 'data_structures.dart';
 
-class SpringSystem implements LayoutAlgorithm {
-  @override
+class SpringSystem {
   final NodeLayout nodeLayout = {};
   final AdjacencyList adjacencyList;
   final _randomGenerator = Random();
@@ -23,13 +22,12 @@ class SpringSystem implements LayoutAlgorithm {
     }
   }
 
-  @override
   void iterate() {
     const c1 = 8;
     const c2 = 0.6;
     const c3 = 1;
-    const c4 = 0.5;
-    const c5 = 0.01;
+    const c3Wall = 0.5;
+    const c4 = 0.01;
 
     // Calculate the forces on each node in the graph.
     for (final node in adjacencyList.keys) {
@@ -41,14 +39,14 @@ class SpringSystem implements LayoutAlgorithm {
           in adjacencyList.keys.where((other) => other != node)) {
         // A vector from node to otherNode.
         final thisToOther = nodeLayout[otherNode]! - nodePosition;
+        final d = thisToOther.length;
 
         if (adjacencyList[node]!.contains(otherNode)) {
           // If otherNode is adjacent to node, apply an attractive force.
-          forceOnThisNode +=
-              thisToOther.scaled(c1 * log(thisToOther.length / c2));
+          forceOnThisNode += thisToOther.scaled(c1 * log(d / c2));
         } else {
           // Otherwise, apply a repulsive force.
-          forceOnThisNode -= thisToOther.scaled(c3 / sqrt(thisToOther.length));
+          forceOnThisNode -= thisToOther.scaled(c3 / sqrt(d));
         }
       }
 
@@ -56,13 +54,13 @@ class SpringSystem implements LayoutAlgorithm {
       final y = nodePosition.y;
 
       // Repel the walls of the unit square.
-      forceOnThisNode += Vector2(0, -y).scaled(c4 / sqrt(y));
-      forceOnThisNode += Vector2(0, 1 - y).scaled(c4 / sqrt(y));
-      forceOnThisNode += Vector2(-x, 0).scaled(c4 / sqrt(x));
-      forceOnThisNode += Vector2(1 - x, 0).scaled(c4 / sqrt(x));
+      forceOnThisNode += Vector2(0, -y).scaled(c3Wall / sqrt(y));
+      forceOnThisNode += Vector2(0, 1 - y).scaled(c3Wall / sqrt(y));
+      forceOnThisNode += Vector2(-x, 0).scaled(c3Wall / sqrt(x));
+      forceOnThisNode += Vector2(1 - x, 0).scaled(c3Wall / sqrt(x));
 
       nodeLayout.update(node, (position) {
-        var newPosition = position + forceOnThisNode.scaled(c5);
+        var newPosition = position + forceOnThisNode.scaled(c4);
 
         // If a node will be outside the unit square as a result of the forces
         // applied to it this iteration, randomise its position instead.

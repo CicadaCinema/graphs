@@ -139,10 +139,3 @@ typedef EdgeList = Set<Edge>;
 /// Typically, this [Vector2] should lie in the unit square, so both [Vector2.x]
 /// and [Vector2.y] will be between 0 and 1.
 typedef NodeLayout = Map<Node, Vector2>;
-
-// TODO: Write docstring.
-abstract class LayoutAlgorithm {
-  Map<Node, Vector2> get nodeLayout;
-
-  void iterate();
-}
