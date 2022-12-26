@@ -38,6 +38,9 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
   /// The node which is currently being dragged by the user.
   Node? _draggedNode;
 
+  /// Whether the dragged node was constrained before the drag began.
+  bool _draggedNodeWasConstrained = false;
+
   @override
   initState() {
     super.initState();
@@ -82,6 +85,8 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
             if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
                 0.05) {
               _draggedNode = closestNode;
+              _draggedNodeWasConstrained =
+                  _constrainedNodes.contains(closestNode);
               _constrainedNodes.add(closestNode);
             }
           },
@@ -92,9 +97,12 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
                   details.localPosition.toVector2();
             }
           },
-          // Reset [_draggedNode] when the drag is stopped, but keep the
-          // previously-dragged node constrained.
+          // Reset [_draggedNode] when the drag is stopped, respecting the
+          // previous constrained status of the dragged node.
           onPanEnd: (details) {
+            if (!_draggedNodeWasConstrained) {
+              _constrainedNodes.remove(_draggedNode);
+            }
             _draggedNode = null;
           },
           child: CustomPaint(
