@@ -33,8 +33,9 @@ class SpringSystem {
     const c1 = 8;
     const c2 = 0.6;
     const c3 = 1;
-    const c3Wall = 0.5;
     const c4 = 0.01;
+    const c5 = 0.4;
+    const c6 = 0.1;
 
     // The threshold for a small change in node position in one axis.
     const stableThreshold = 0.001;
@@ -60,36 +61,20 @@ class SpringSystem {
 
         if (adjacencyList[node]!.contains(otherNode)) {
           // If otherNode is adjacent to node, apply an attractive force.
-          forceOnThisNode += thisToOther.scaled(c1 * log(d / c2));
+          forceOnThisNode += thisToOther.normalized().scaled(c1 * log(d / c2));
         } else {
           // Otherwise, apply a repulsive force.
-          forceOnThisNode -= thisToOther.scaled(c3 / sqrt(d));
+          forceOnThisNode -= thisToOther.normalized().scaled(c3 / pow(d, 2));
         }
       }
 
-      final x = nodePosition.x;
-      final y = nodePosition.y;
-
-      // Repel the walls of the unit square.
-      forceOnThisNode += Vector2(0, -y).scaled(c3Wall / sqrt(y));
-      forceOnThisNode += Vector2(0, 1 - y).scaled(c3Wall / sqrt(y));
-      forceOnThisNode += Vector2(-x, 0).scaled(c3Wall / sqrt(x));
-      forceOnThisNode += Vector2(1 - x, 0).scaled(c3Wall / sqrt(x));
+      // A small attractive force pulls each node to the centre.
+      forceOnThisNode += (Vector2.all(0.5) - nodePosition).scaled(c5);
 
       nodeLayout.update(node, (position) {
         final positionChange = forceOnThisNode.scaled(c4);
-        var newPosition = position + positionChange;
-
-        // If a node will be outside the unit square as a result of the forces
-        // applied to it this iteration, randomise its position instead. The new
-        // position is guaranteed to lie inside the unit square.
-        if (newPosition.x >= 1 ||
-            newPosition.x <= 0 ||
-            newPosition.y >= 1 ||
-            newPosition.y <= 0) {
-          newPosition = _randomVector2();
-          isStable = false;
-        }
+        final newPosition = position + positionChange;
+        newPosition.clampScalar(c6, 1 - c6);
 
         // If the position of this node changes too much, the layout is not
         // stable.
