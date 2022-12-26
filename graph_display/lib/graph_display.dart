@@ -73,11 +73,11 @@ class _GraphPainter extends CustomPainter {
   final NodeLayout nodes;
 
   final _backgroundPaint = Paint()..color = const Color(0xFF779000);
-
   final _edgePaint = Paint()
     ..strokeWidth = 0.005
     ..color = const Color(0xFFFF9000)
     ..style = PaintingStyle.stroke;
+  final _nodePaint = Paint()..color = const Color(0xFF1190FF);
 
   _GraphPainter({
     required this.edgeList,
@@ -105,7 +105,10 @@ class _GraphPainter extends CustomPainter {
           _edgePaint);
     }
 
-    // TODO: Paint nodes, not just edges.
+    for (final node in nodes.values) {
+      // TODO: Is there a simpler way to obtain an Offset from a Vector2?
+      canvas.drawCircle(Offset(node.x, node.y), 0.05, _nodePaint);
+    }
   }
 
   // TODO: Is more fine grained logic necessary?
