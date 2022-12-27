@@ -58,7 +58,7 @@ void main() {
       expect(aToC.hashCode == aToD.hashCode, isFalse);
     });
 
-    test('Graph from edge list', () {
+    test('Adjacency list from edge list', () {
       // The S2 star graph.
       final s2fromEdgeList = Graph.fromEdgeList({
         Edge(left: a, right: c),
@@ -84,7 +84,13 @@ void main() {
       );
     });
 
-    test('Graph from adjacency list', () {
+    test('Graph from empty edge list', () {
+      final graphFromEmptyEdgeList = Graph.fromEdgeList({});
+      expect(graphFromEmptyEdgeList.edgeList, isEmpty);
+      expect(graphFromEmptyEdgeList.adjacencyList, isEmpty);
+    });
+
+    test('Edge list from adjacency list', () {
       // The S2 star graph.
       final s2fromAdjacencyList = Graph.fromAdjacencyList({
         a: {c, d},
@@ -104,6 +110,12 @@ void main() {
         s2fromAdjacencyList.edgeList.toList()[1] == Edge(left: a, right: d),
         isTrue,
       );
+    });
+
+    test('Graph from empty adjacency list', () {
+      final graphFromEmptyAdjacencyList = Graph.fromAdjacencyList({});
+      expect(graphFromEmptyAdjacencyList.edgeList, isEmpty);
+      expect(graphFromEmptyAdjacencyList.adjacencyList, isEmpty);
     });
   });
 }
