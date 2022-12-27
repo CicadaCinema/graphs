@@ -15,10 +15,6 @@ void main() {
     late Edge cToA_;
     late Edge aToD;
 
-    // The S2 star graph.
-    late Graph s2fromEdgeList;
-    late Graph s2fromAdjacencyList;
-
     setUp(() {
       a = IntegerNode(1);
       b = IntegerNode(1);
@@ -30,17 +26,6 @@ void main() {
       aToC_ = Edge(left: a, right: c);
       cToA_ = Edge(left: c, right: a);
       aToD = Edge(left: a, right: d);
-
-      s2fromEdgeList = Graph.fromEdgeList({
-        Edge(left: a, right: c),
-        Edge(left: a, right: d),
-      });
-
-      s2fromAdjacencyList = Graph.fromAdjacencyList({
-        a: {c, d},
-        c: {a},
-        d: {a},
-      });
     });
 
     test('IntegerNode equality', () {
@@ -73,7 +58,13 @@ void main() {
       expect(aToC.hashCode == aToD.hashCode, isFalse);
     });
 
-    test('Graph constructors', () {
+    test('Graph from edge list', () {
+      // The S2 star graph.
+      final s2fromEdgeList = Graph.fromEdgeList({
+        Edge(left: a, right: c),
+        Edge(left: a, right: d),
+      });
+
       // Expect:
       // a -> {c, d}
       // c -> {a}
@@ -91,6 +82,15 @@ void main() {
         SetEquality().equals(s2fromEdgeList.adjacencyList[d], {a}),
         isTrue,
       );
+    });
+
+    test('Graph from adjacency list', () {
+      // The S2 star graph.
+      final s2fromAdjacencyList = Graph.fromAdjacencyList({
+        a: {c, d},
+        c: {a},
+        d: {a},
+      });
 
       // Expect:
       // Edge(left: a, right: c)
