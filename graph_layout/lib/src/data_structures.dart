@@ -75,9 +75,10 @@ class Graph {
   /// the graph's topology.
   late final EdgeList edgeList;
 
-  // TODO: Make these two constructors easier to read.
-  // TODO: Characterise the running times (in big-O notation ideally) of these two constructors and document them - benchmark this??
-  /// Create a graph using its adjacency list.
+  // TODO: Improve the readability of the two non-factory constructors.
+  // TODO: Ensure that the factory constructors are implemented correctly.
+  // TODO: Characterise the running times (in big-O notation ideally) of the constructors and document them - benchmark this??
+  /// Create a [Graph] using its adjacency list.
   Graph.fromAdjacencyList(AdjacencyList adjacencyList) {
     // TODO: Assert that this is a valid adjacency list? - ie adjacencyList[a] contains b <=> adjacencyList[b] contains a
     this.adjacencyList = _unmodifiableAdjacencyList(adjacencyList);
@@ -93,7 +94,37 @@ class Graph {
     edgeList = _unmodifiableEdgeList(edges);
   }
 
-  /// Create a graph using its edge list.
+  /// Create a [Graph] using a [String] format of its adjacency list.
+  ///
+  /// The accepted format is similar to the [NetworkX adjacency list
+  /// format](https://networkx.org/documentation/stable/reference/readwrite/adjlist.html#format).
+  /// Here, comments or any other arbitrary data is not allowed and will result
+  /// in a [FormatException].
+  factory Graph.fromAdjacencyListString(String adjacencyListString) {
+    final AdjacencyList adjacencyList = {};
+
+    for (final line in adjacencyListString.split(RegExp(r'\r?\n'))) {
+      final nodes = line.split(' ');
+
+      // Allowing only one (source) node in an adjacency list line may be
+      // convenient in some cases.
+      if (nodes.isEmpty) {
+        throw FormatException(
+            'An adjacency list cannot contain an empty line', line);
+      }
+
+      final sourceNode = IntegerNode(int.parse(nodes.first));
+      final targetNodes = nodes
+          .skip(1)
+          .map((stringId) => IntegerNode(int.parse(stringId)))
+          .toSet();
+      adjacencyList[sourceNode] = targetNodes;
+    }
+
+    return Graph.fromAdjacencyList(adjacencyList);
+  }
+
+  /// Create a [Graph] using its edge list.
   Graph.fromEdgeList(EdgeList edgeList) {
     // TODO: assert that this is a valid edge list? - ie no edge loops are present
     this.edgeList = _unmodifiableEdgeList(edgeList);
@@ -116,6 +147,32 @@ class Graph {
     }
 
     adjacencyList = _unmodifiableAdjacencyList(adjacencies);
+  }
+
+  /// Create a [Graph] using a [String] format of its edge list.
+  ///
+  /// The accepted format is similar to the [NetworkX edge list
+  /// format](https://networkx.org/documentation/stable/reference/readwrite/edgelist.html#format).
+  /// Here, comments or any other arbitrary data is not allowed and will result
+  /// in a [FormatException].
+  factory Graph.fromEdgeListString(String edgeListString) {
+    final EdgeList edgeList = {};
+
+    for (final line in edgeListString.split(RegExp(r'\r?\n'))) {
+      final nodes = line.split(' ');
+
+      if (nodes.length != 2) {
+        throw FormatException(
+            'Each line of an edge list must contain exactly two nodes.', line);
+      }
+
+      edgeList.add(Edge(
+        left: IntegerNode(int.parse(nodes[0])),
+        right: IntegerNode(int.parse(nodes[1])),
+      ));
+    }
+
+    return Graph.fromEdgeList(edgeList);
   }
 }
 

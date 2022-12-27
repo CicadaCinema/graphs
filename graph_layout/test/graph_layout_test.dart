@@ -117,5 +117,50 @@ void main() {
       expect(graphFromEmptyAdjacencyList.edgeList, isEmpty);
       expect(graphFromEmptyAdjacencyList.adjacencyList, isEmpty);
     });
+
+    // https://en.wikipedia.org/wiki/Diamond_graph
+    void expectDiamondGraph(Graph graph, Node A, Node B, Node C, Node D) {
+      expect(graph.edgeList.length, equals(5));
+      expect(graph.edgeList, contains(Edge(left: A, right: B)));
+      expect(graph.edgeList, contains(Edge(left: A, right: C)));
+      expect(graph.edgeList, contains(Edge(left: B, right: C)));
+      expect(graph.edgeList, contains(Edge(left: D, right: B)));
+      expect(graph.edgeList, contains(Edge(left: D, right: C)));
+
+      expect(graph.adjacencyList.length, equals(4));
+      expect(SetEquality().equals(graph.adjacencyList[A], {B, C}), isTrue);
+      expect(SetEquality().equals(graph.adjacencyList[B], {A, C, D}), isTrue);
+      expect(SetEquality().equals(graph.adjacencyList[C], {A, B, D}), isTrue);
+      expect(SetEquality().equals(graph.adjacencyList[D], {B, C}), isTrue);
+    }
+
+    test('Diamond graph from edge list string', () {
+      final diamondGraph = Graph.fromEdgeListString('''11 22
+11 33
+22 33
+44 22
+44 33''');
+      expectDiamondGraph(
+        diamondGraph,
+        IntegerNode(11),
+        IntegerNode(22),
+        IntegerNode(33),
+        IntegerNode(44),
+      );
+    });
+
+    test('Diamond graph from adjacency list string', () {
+      final diamondGraph = Graph.fromAdjacencyListString('''11 22 33
+22 11 33 44
+33 11 22 44
+44 22 33''');
+      expectDiamondGraph(
+        diamondGraph,
+        IntegerNode(11),
+        IntegerNode(22),
+        IntegerNode(33),
+        IntegerNode(44),
+      );
+    });
   });
 }
