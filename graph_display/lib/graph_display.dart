@@ -5,11 +5,16 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:graph_layout/graph_layout.dart';
+import 'package:vector_math/vector_math.dart';
 
 import 'src/common.dart';
 
 class SpringGraphDisplay extends StatefulWidget {
   final Graph graphTopology;
+
+  final void Function(Canvas) drawBackground;
+  final void Function(Canvas, Vector2, Vector2) drawEdge;
+  final void Function(Canvas, Vector2) drawNode;
 
   /// The period of time, in milliseconds, between successive iterations of the
   /// spring layout algorithm.
@@ -19,6 +24,9 @@ class SpringGraphDisplay extends StatefulWidget {
     Key? key,
     required this.graphTopology,
     this.intervalTime = 16,
+    this.drawBackground = _drawBackgroundDefault,
+    this.drawEdge = _drawEdgeDefault,
+    this.drawNode = _drawNodeDefault,
   }) : super(key: key);
 
   @override
@@ -109,6 +117,9 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
             painter: _GraphPainter(
               edgeList: widget.graphTopology.edgeList,
               nodes: graphState.nodeLayout,
+              drawBackground: widget.drawBackground,
+              drawEdge: widget.drawEdge,
+              drawNode: widget.drawNode,
             ),
             size: const Size.square(1),
           ),
@@ -118,46 +129,66 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
   }
 }
 
+void _drawBackgroundDefault(Canvas canvas) {
+  final backgroundPaint = Paint()..color = const Color(0xFF779000);
+  // A unit square serves as a background.
+  canvas.drawRect(
+    Rect.fromPoints(Offset.zero, const Offset(1, 1)),
+    backgroundPaint,
+  );
+}
+
+void _drawEdgeDefault(
+    Canvas canvas, Vector2 leftPosition, Vector2 rightPosition) {
+  final edgePaint = Paint()
+    ..strokeWidth = 0.005
+    ..color = const Color(0xFFFF9000)
+    ..style = PaintingStyle.stroke;
+  // Draw a line from the position of the left node to that of the right node.
+  canvas.drawPath(
+      Path()
+        ..moveTo(leftPosition.x, leftPosition.y)
+        ..lineTo(rightPosition.x, rightPosition.y)
+        ..close(),
+      edgePaint);
+}
+
+void _drawNodeDefault(Canvas canvas, Vector2 position) {
+  final nodePaint = Paint()..color = const Color(0xFF1190FF);
+  canvas.drawCircle(position.toOffset(), 0.05, nodePaint);
+}
+
 class _GraphPainter extends CustomPainter {
   final EdgeList edgeList;
   final NodeLayout nodes;
 
-  final _backgroundPaint = Paint()..color = const Color(0xFF779000);
-  final _edgePaint = Paint()
-    ..strokeWidth = 0.005
-    ..color = const Color(0xFFFF9000)
-    ..style = PaintingStyle.stroke;
-  final _nodePaint = Paint()..color = const Color(0xFF1190FF);
+  final void Function(Canvas) drawBackground;
+  final void Function(Canvas, Vector2, Vector2) drawEdge;
+  final void Function(Canvas, Vector2) drawNode;
 
   _GraphPainter({
     required this.edgeList,
     required this.nodes,
+    // The [_...Default] functions are workarounds, since the default value of
+    // an optional parameter must be constant.
+    // https://dart.dev/tools/diagnostic-messages#non_constant_default_value
+    required this.drawBackground,
+    required this.drawEdge,
+    required this.drawNode,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // A unit square serves as a background.
-    canvas.drawRect(
-      Rect.fromPoints(Offset.zero, const Offset(1, 1)),
-      _backgroundPaint,
-    );
+    drawBackground(canvas);
 
-    // Paint the graph edges according to the computed layout.
+    // Draw the graph edges according to the computed layout.
     for (final edge in edgeList) {
-      // The positions of the left node and the right node.
-      final leftPosition = nodes[edge.left]!;
-      final rightPosition = nodes[edge.right]!;
-      canvas.drawPath(
-          Path()
-            ..moveTo(leftPosition.x, leftPosition.y)
-            ..lineTo(rightPosition.x, rightPosition.y)
-            ..close(),
-          _edgePaint);
+      drawEdge(canvas, nodes[edge.left]!, nodes[edge.right]!);
     }
 
-    for (final node in nodes.values) {
-      // TODO: Is there a simpler way to obtain an Offset from a Vector2?
-      canvas.drawCircle(Offset(node.x, node.y), 0.05, _nodePaint);
+    // Draw each of the nodes, so that they overlap the edges.
+    for (final nodePosition in nodes.values) {
+      drawNode(canvas, nodePosition);
     }
   }
 

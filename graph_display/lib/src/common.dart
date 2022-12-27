@@ -2,8 +2,12 @@ import 'dart:ui';
 
 import 'package:vector_math/vector_math.dart';
 
-extension OffsetExt on Offset {
+extension OffsetToVector2 on Offset {
   Vector2 toVector2() => Vector2(dx, dy);
+}
+
+extension Vector2ToOffset on Vector2 {
+  Offset toOffset() => Offset(x, y);
 }
 
 // TODO: See https://github.com/google/vector_math.dart/issues/189 .
