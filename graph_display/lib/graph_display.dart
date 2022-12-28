@@ -12,7 +12,7 @@ import 'src/common.dart';
 class SpringGraphDisplay extends StatefulWidget {
   final Graph graphTopology;
 
-  final void Function(Canvas)? drawBackground;
+  final void Function(Canvas, Size)? drawBackground;
   final void Function(Canvas, Vector2, Vector2)? drawEdge;
   final void Function(Canvas, Vector2)? drawNode;
 
@@ -35,7 +35,10 @@ class SpringGraphDisplay extends StatefulWidget {
 
 class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
   late final SpringSystem graphState = SpringSystem(
+    // The initial state of the spring system.
     adjacencyList: widget.graphTopology.adjacencyList,
+    layoutWidth: layoutWidth,
+    layoutHeight: layoutHeight,
   );
   final stopwatch = Stopwatch();
 
@@ -49,22 +52,25 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
   /// Whether the dragged node was constrained before the drag began.
   bool _draggedNodeWasConstrained = false;
 
+  late double layoutWidth;
+  late double layoutHeight;
+
   // Default methods for drawing the background, edges and nodes with theme-
   // aware colours.
   late final drawBackground = widget.drawBackground ??
-      (Canvas canvas) {
+      (Canvas canvas, Size size) {
         final backgroundPaint = Paint()
           ..color = Theme.of(context).colorScheme.background;
         // A unit square serves as a background.
         canvas.drawRect(
-          Rect.fromPoints(Offset.zero, const Offset(1, 1)),
+          Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
           backgroundPaint,
         );
       };
   late final drawEdge = widget.drawEdge ??
       (Canvas canvas, Vector2 leftPosition, Vector2 rightPosition) {
         final edgePaint = Paint()
-          ..strokeWidth = 0.005
+          ..strokeWidth = 1
           ..color = Theme.of(context).colorScheme.primary.withAlpha(64)
           ..style = PaintingStyle.stroke;
         canvas.drawPath(
@@ -78,7 +84,7 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
       (Canvas canvas, Vector2 position) {
         final nodePaint = Paint()
           ..color = Theme.of(context).colorScheme.primary;
-        canvas.drawCircle(position.toOffset(), 0.05, nodePaint);
+        canvas.drawCircle(position.toOffset(), 10, nodePaint);
       };
 
   @override
@@ -104,57 +110,63 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints.expand(),
-      child: FittedBox(
-        child: GestureDetector(
-          // If a node is tapped, toggle whether or not it is constrained.
-          onTapUp: (details) {
-            final panPosition = details.localPosition.toVector2();
-            final closestNode = graphState.nodeLayout.closest(panPosition);
-            if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
-                0.05) {
-              _constrainedNodes.toggle(closestNode);
-            }
+    return Expanded(
+      child: GestureDetector(
+        // If a node is tapped, toggle whether or not it is constrained.
+        onTapUp: (details) {
+          final panPosition = details.localPosition.toVector2();
+          final closestNode = graphState.nodeLayout.closest(panPosition);
+          if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
+              10) {
+            _constrainedNodes.toggle(closestNode);
+          }
+        },
+        // If a node drag is started, set [_draggedNode] to the dragged node
+        // and ensure it is constrained.
+        onPanStart: (details) {
+          final panPosition = details.localPosition.toVector2();
+          final closestNode = graphState.nodeLayout.closest(panPosition);
+          if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
+              10) {
+            _draggedNode = closestNode;
+            _draggedNodeWasConstrained =
+                _constrainedNodes.contains(closestNode);
+            _constrainedNodes.add(closestNode);
+          }
+        },
+        // If a node is being dragged, update its position.
+        onPanUpdate: (details) {
+          if (_draggedNode != null) {
+            graphState.nodeLayout[_draggedNode!] =
+                details.localPosition.toVector2();
+          }
+        },
+        // Reset [_draggedNode] when the drag is stopped, respecting the
+        // previous constrained status of the dragged node.
+        onPanEnd: (details) {
+          if (!_draggedNodeWasConstrained) {
+            _constrainedNodes.remove(_draggedNode);
+          }
+          _draggedNode = null;
+        },
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            layoutWidth = constraints.maxWidth;
+            layoutHeight = constraints.maxHeight;
+            graphState.layoutWidth = constraints.maxWidth;
+            graphState.layoutHeight = constraints.maxHeight;
+
+            return CustomPaint(
+              painter: _GraphPainter(
+                edgeList: widget.graphTopology.edgeList,
+                nodes: graphState.nodeLayout,
+                drawBackground: drawBackground,
+                drawEdge: drawEdge,
+                drawNode: drawNode,
+              ),
+              size: Size.infinite,
+            );
           },
-          // If a node drag is started, set [_draggedNode] to the dragged node
-          // and ensure it is constrained.
-          onPanStart: (details) {
-            final panPosition = details.localPosition.toVector2();
-            final closestNode = graphState.nodeLayout.closest(panPosition);
-            if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
-                0.05) {
-              _draggedNode = closestNode;
-              _draggedNodeWasConstrained =
-                  _constrainedNodes.contains(closestNode);
-              _constrainedNodes.add(closestNode);
-            }
-          },
-          // If a node is being dragged, update its position.
-          onPanUpdate: (details) {
-            if (_draggedNode != null) {
-              graphState.nodeLayout[_draggedNode!] =
-                  details.localPosition.toVector2();
-            }
-          },
-          // Reset [_draggedNode] when the drag is stopped, respecting the
-          // previous constrained status of the dragged node.
-          onPanEnd: (details) {
-            if (!_draggedNodeWasConstrained) {
-              _constrainedNodes.remove(_draggedNode);
-            }
-            _draggedNode = null;
-          },
-          child: CustomPaint(
-            painter: _GraphPainter(
-              edgeList: widget.graphTopology.edgeList,
-              nodes: graphState.nodeLayout,
-              drawBackground: drawBackground,
-              drawEdge: drawEdge,
-              drawNode: drawNode,
-            ),
-            size: const Size.square(1),
-          ),
         ),
       ),
     );
@@ -165,7 +177,7 @@ class _GraphPainter extends CustomPainter {
   final EdgeList edgeList;
   final NodeLayout nodes;
 
-  final void Function(Canvas) drawBackground;
+  final void Function(Canvas, Size) drawBackground;
   final void Function(Canvas, Vector2, Vector2) drawEdge;
   final void Function(Canvas, Vector2) drawNode;
 
@@ -179,7 +191,7 @@ class _GraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    drawBackground(canvas);
+    drawBackground(canvas, size);
 
     // Draw the graph edges according to the computed layout.
     for (final edge in edgeList) {

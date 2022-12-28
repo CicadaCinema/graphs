@@ -7,18 +7,20 @@ import 'data_structures.dart';
 class SpringSystem {
   final NodeLayout nodeLayout = {};
   final AdjacencyList adjacencyList;
-  final _randomGenerator = Random();
 
-  /// Create a random vector within the unit square.
-  Vector2 _randomVector2() => Vector2(
-        _randomGenerator.nextDouble(),
-        _randomGenerator.nextDouble(),
-      );
+  late double layoutWidth;
+  late double layoutHeight;
 
-  SpringSystem({required this.adjacencyList}) {
+  SpringSystem({
+    required this.adjacencyList,
+    required this.layoutWidth,
+    required this.layoutHeight,
+  }) {
     // Assign random positions initially.
     for (final node in adjacencyList.keys) {
-      nodeLayout[node] = _randomVector2();
+      final randomVector2 = Vector2.random();
+      randomVector2.multiply(Vector2(layoutWidth, layoutHeight));
+      nodeLayout[node] = randomVector2;
     }
   }
 
@@ -30,15 +32,15 @@ class SpringSystem {
     // TODO: Make these constants named parameters with default values?
 
     // TODO: Tune these constants.
-    const c1 = 8;
-    const c2 = 0.6;
-    const c3 = 1;
-    const c4 = 0.01;
-    const c5 = 0.4;
+    const c1 = 24;
+    const c2 = 240;
+    const c3 = 24;
+    const c4 = 0.1;
+    const c5 = 0.04;
     const c6 = 0.1;
 
     // The threshold for a small change in node position in one axis.
-    const stableThreshold = 0.001;
+    final stableThreshold = 0.001 * min(layoutWidth, layoutHeight);
 
     // Initially assume this layout is stable.
     var isStable = true;
@@ -69,12 +71,15 @@ class SpringSystem {
       }
 
       // A small attractive force pulls each node to the centre.
-      forceOnThisNode += (Vector2.all(0.5) - nodePosition).scaled(c5);
+      forceOnThisNode +=
+          (Vector2(layoutWidth / 2, layoutHeight / 2) - nodePosition)
+              .scaled(c5);
 
       nodeLayout.update(node, (position) {
         final positionChange = forceOnThisNode.scaled(c4);
         final newPosition = position + positionChange;
-        newPosition.clampScalar(c6, 1 - c6);
+        newPosition.clamp(
+            Vector2.all(c6), Vector2(layoutWidth - c6, layoutHeight - c6));
 
         // If the position of this node changes too much, the layout is not
         // stable.
