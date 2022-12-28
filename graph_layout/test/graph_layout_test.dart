@@ -1,6 +1,5 @@
 import 'package:graph_layout/graph_layout.dart';
 import 'package:test/test.dart';
-import 'package:collection/collection.dart';
 
 void main() {
   group('Data structures', () {
@@ -31,13 +30,13 @@ void main() {
     test('IntegerNode equality', () {
       // Two representations of the same node.
       expect(a == a, isTrue);
-      expect(a.hashCode == a.hashCode, isTrue);
+      expect(a.hashCode, equals(a.hashCode));
       expect(a == b, isTrue);
-      expect(a.hashCode == b.hashCode, isTrue);
+      expect(a.hashCode, equals(b.hashCode));
 
       // These are different nodes.
       expect(a == c, isFalse);
-      expect(a.hashCode == c.hashCode, isFalse);
+      expect(a.hashCode, isNot(equals(c.hashCode)));
     });
 
     test('Edge equality', () {
@@ -45,17 +44,17 @@ void main() {
 
       // All four objects represent the same edge.
       expect(aToC == aToC, isTrue);
-      expect(aToC.hashCode == aToC.hashCode, isTrue);
+      expect(aToC.hashCode, equals(aToC.hashCode));
       expect(aToC == cToA, isTrue);
-      expect(aToC.hashCode == cToA.hashCode, isTrue);
+      expect(aToC.hashCode, equals(cToA.hashCode));
       expect(aToC_ == cToA_, isTrue);
-      expect(aToC_.hashCode == cToA_.hashCode, isTrue);
+      expect(aToC_.hashCode, equals(cToA_.hashCode));
       expect(aToC == aToC_, isTrue);
-      expect(aToC.hashCode == aToC_.hashCode, isTrue);
+      expect(aToC.hashCode, equals(aToC_.hashCode));
 
       // These are different edges.
       expect(aToC == aToD, isFalse);
-      expect(aToC.hashCode == aToD.hashCode, isFalse);
+      expect(aToC.hashCode, isNot(equals(aToD.hashCode)));
     });
 
     test('Adjacency list from edge list', () {
@@ -69,19 +68,10 @@ void main() {
       // a -> {c, d}
       // c -> {a}
       // d -> {a}
-      expect(s2fromEdgeList.adjacencyList.keys.length == 3, isTrue);
-      expect(
-        SetEquality().equals(s2fromEdgeList.adjacencyList[a], {c, d}),
-        isTrue,
-      );
-      expect(
-        SetEquality().equals(s2fromEdgeList.adjacencyList[c], {a}),
-        isTrue,
-      );
-      expect(
-        SetEquality().equals(s2fromEdgeList.adjacencyList[d], {a}),
-        isTrue,
-      );
+      expect(s2fromEdgeList.adjacencyList.keys.length, equals(3));
+      expect(s2fromEdgeList.adjacencyList[a], equals({c, d}));
+      expect(s2fromEdgeList.adjacencyList[c], equals({a}));
+      expect(s2fromEdgeList.adjacencyList[d], equals({a}));
     });
 
     test('Graph from empty edge list', () {
@@ -101,14 +91,14 @@ void main() {
       // Expect:
       // Edge(left: a, right: c)
       // Edge(left: a, right: d)
-      expect(s2fromAdjacencyList.edgeList.length == 2, isTrue);
+      expect(s2fromAdjacencyList.edgeList.length, equals(2));
       expect(
-        s2fromAdjacencyList.edgeList.toList()[0] == Edge(left: a, right: c),
-        isTrue,
+        s2fromAdjacencyList.edgeList.toList(),
+        contains(Edge(left: a, right: c)),
       );
       expect(
-        s2fromAdjacencyList.edgeList.toList()[1] == Edge(left: a, right: d),
-        isTrue,
+        s2fromAdjacencyList.edgeList.toList(),
+        contains(Edge(left: a, right: d)),
       );
     });
 
@@ -128,10 +118,10 @@ void main() {
       expect(graph.edgeList, contains(Edge(left: D, right: C)));
 
       expect(graph.adjacencyList.length, equals(4));
-      expect(SetEquality().equals(graph.adjacencyList[A], {B, C}), isTrue);
-      expect(SetEquality().equals(graph.adjacencyList[B], {A, C, D}), isTrue);
-      expect(SetEquality().equals(graph.adjacencyList[C], {A, B, D}), isTrue);
-      expect(SetEquality().equals(graph.adjacencyList[D], {B, C}), isTrue);
+      expect(graph.adjacencyList[A], equals({B, C}));
+      expect(graph.adjacencyList[B], equals({A, C, D}));
+      expect(graph.adjacencyList[C], equals({A, B, D}));
+      expect(graph.adjacencyList[D], equals({B, C}));
     }
 
     test('Diamond graph from edge list string', () {
