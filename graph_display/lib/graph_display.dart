@@ -153,8 +153,10 @@ class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
           builder: (BuildContext context, BoxConstraints constraints) {
             layoutWidth = constraints.maxWidth;
             layoutHeight = constraints.maxHeight;
-            graphState.layoutWidth = constraints.maxWidth;
-            graphState.layoutHeight = constraints.maxHeight;
+            graphState.updateLayout(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+            );
 
             return CustomPaint(
               painter: _GraphPainter(

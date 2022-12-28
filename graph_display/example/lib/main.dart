@@ -43,8 +43,12 @@ class _ExampleAppState extends State<ExampleApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: SpringGraphDisplay(
-          graphTopology: graph,
+        body: Column(
+          children: [
+            SpringGraphDisplay(
+              graphTopology: graph,
+            )
+          ],
         ),
       ),
     );

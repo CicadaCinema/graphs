@@ -8,13 +8,32 @@ class SpringSystem {
   final NodeLayout nodeLayout = {};
   final AdjacencyList adjacencyList;
 
-  late double layoutWidth;
-  late double layoutHeight;
+  /// The width of the area where the graph layout is drawn.
+  late double _layoutWidth;
+
+  /// The height of the area where the graph layout is drawn.
+  late double _layoutHeight;
+
+  /// The centre of the area where the graph layout is drawn.
+  late Vector2 _layoutCentre;
+
+  /// The threshold for a small change in node position in one axis.
+  late double _stableThreshold;
+
+  // Call this when the graph layout area has been updated.
+  void updateLayout({required double width, required double height}) {
+    _layoutWidth = width;
+    _layoutHeight = height;
+    _stableThreshold = 0.001 * min(width, height);
+    _layoutCentre = Vector2(width / 2, height / 2);
+
+    // TODO: Reposition nodes intelligently.
+  }
 
   SpringSystem({
     required this.adjacencyList,
-    required this.layoutWidth,
-    required this.layoutHeight,
+    required layoutWidth,
+    required layoutHeight,
   }) {
     // Assign random positions initially.
     for (final node in adjacencyList.keys) {
@@ -22,6 +41,8 @@ class SpringSystem {
       randomVector2.multiply(Vector2(layoutWidth, layoutHeight));
       nodeLayout[node] = randomVector2;
     }
+
+    updateLayout(width: layoutWidth, height: layoutHeight);
   }
 
   /// Perform one iteration of the spring algorithm, updating [nodeLayout].
@@ -38,9 +59,6 @@ class SpringSystem {
     const c4 = 0.1;
     const c5 = 0.04;
     const c6 = 0.1;
-
-    // The threshold for a small change in node position in one axis.
-    final stableThreshold = 0.001 * min(layoutWidth, layoutHeight);
 
     // Initially assume this layout is stable.
     var isStable = true;
@@ -71,21 +89,19 @@ class SpringSystem {
       }
 
       // A small attractive force pulls each node to the centre.
-      forceOnThisNode +=
-          (Vector2(layoutWidth / 2, layoutHeight / 2) - nodePosition)
-              .scaled(c5);
+      forceOnThisNode += (_layoutCentre - nodePosition).scaled(c5);
 
       nodeLayout.update(node, (position) {
         final positionChange = forceOnThisNode.scaled(c4);
         final newPosition = position + positionChange;
         newPosition.clamp(
-            Vector2.all(c6), Vector2(layoutWidth - c6, layoutHeight - c6));
+            Vector2.all(c6), Vector2(_layoutWidth - c6, _layoutHeight - c6));
 
         // If the position of this node changes too much, the layout is not
         // stable.
         if (isStable &&
             max(positionChange.x.abs(), positionChange.y.abs()) >
-                stableThreshold) {
+                _stableThreshold) {
           isStable = false;
         }
 
