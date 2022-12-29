@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:graph_display/graph_display.dart';
 import 'package:graph_layout/graph_layout.dart';
+import 'package:http/http.dart' as http;
+
+/// Identifiers for each of the demo graphs.
+// ignore: constant_identifier_names
+enum DemoGraphId { K8, jean }
+
+/// Human-readable labels for the demo graphs.
+const demoNames = {
+  DemoGraphId.K8: 'Complete graph on 8 vertices',
+  DemoGraphId.jean: 'Character co-occurrences in Les Misérables'
+};
 
 void main() {
   runApp(const ExampleApp());
@@ -14,29 +25,86 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  late final Graph graph;
+  var selectedGraph = DemoGraphId.K8;
 
-  @override
-  void initState() {
-    super.initState();
-
-    // Create a complete graph on nodeCount nodes.
-    const nodeCount = 8;
-
-    final nodes = List<int>.generate(nodeCount, (i) => i + 1)
+  /// Returns a complete [Graph] on [nodeNumber] nodes.
+  Graph _generateCompleteGraph(int nodeNumber) {
+    final nodes = List<int>.generate(nodeNumber, (i) => i + 1)
         .map((i) => IntegerNode(i))
         .toList();
 
     final edges = <Edge>{};
-    for (int i = 0; i < nodeCount; i++) {
-      for (int j = 0; j < nodeCount; j++) {
+    for (int i = 0; i < nodeNumber; i++) {
+      for (int j = 0; j < nodeNumber; j++) {
         if (i != j) {
           edges.add(Edge(left: nodes[i], right: nodes[j]));
         }
       }
     }
 
-    graph = Graph.fromEdgeList(edges);
+    return Graph.fromEdgeList(edges);
+  }
+
+  Widget displayDemo() {
+    switch (selectedGraph) {
+      case DemoGraphId.K8:
+        {
+          return EadesInteractive(
+            graphTopology: _generateCompleteGraph(8),
+          );
+        }
+
+      case DemoGraphId.jean:
+        {
+          return FutureBuilder<String>(
+            future: http.read(Uri.http(
+              'ftp.cs.stanford.edu',
+              '/pub/sgb/jean.dat',
+            )),
+            builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+              if (snapshot.hasData) {
+                final edges = <Edge>{};
+
+                // Each match corresponds to a chapter, each of which contains
+                // one or more scenes.
+                final matches = RegExp(r'(?<=[0-9]:).*$', multiLine: true)
+                    .allMatches(snapshot.data!)
+                    .map((match) => match[0]!.split(';'))
+                    .expand((e) => e);
+
+                // Iterate over each scene. Two characters are said to co-occur
+                // if they appear in the same scene.
+                for (final m in matches) {
+                  // The characters in this scene.
+                  final characters = m
+                      .split(',')
+                      .map((characterString) =>
+                          IntegerNode(characterString.hashCode))
+                      .toList();
+
+                  // Find each pair in this group and add it as an edge. There
+                  // is no need to worry about time complexity here because
+                  // [characters] is small.
+                  for (final char1 in characters) {
+                    for (final char2 in characters) {
+                      if (char1 != char2) {
+                        edges.add(Edge(left: char1, right: char2));
+                      }
+                    }
+                  }
+                }
+                return EadesInteractive(
+                  graphTopology: Graph.fromEdgeList(edges),
+                );
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error fetching graph data'));
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          );
+        }
+    }
   }
 
   @override
@@ -45,9 +113,23 @@ class _ExampleAppState extends State<ExampleApp> {
       home: Scaffold(
         body: Column(
           children: [
-            EadesInteractive(
-              graphTopology: graph,
-            )
+            // A dropdown menu which selects the demo graph to display.
+            DropdownButton(
+              value: selectedGraph,
+              onChanged: (value) {
+                setState(() {
+                  selectedGraph = value!;
+                });
+              },
+              items: DemoGraphId.values
+                  .map((demoId) => DropdownMenuItem(
+                        value: demoId,
+                        child: Text(demoNames[demoId]!),
+                      ))
+                  .toList(),
+            ),
+            // The graph demo itself.
+            displayDemo(),
           ],
         ),
       ),
