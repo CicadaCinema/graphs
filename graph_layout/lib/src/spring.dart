@@ -4,8 +4,17 @@ import 'package:vector_math/vector_math.dart';
 
 import 'data_structures.dart';
 
-class SpringSystem {
+/// An implementation of the Eades layout algorithm.
+///
+/// After creating an instance of this class, call [iterate] to execute one
+/// iteration of the algorithm, or run [iterateUntilStable] to repeatedly
+/// perform iterations until the layout becomes stable. Access the computed
+/// layout with [nodeLayout].
+class Eades {
+  /// The computed layout of the given graph.
   final NodeLayout nodeLayout = {};
+
+  /// The adjacency list describing the topology of the given graph.
   final AdjacencyList adjacencyList;
 
   /// The width of the area where the graph layout is drawn.
@@ -20,6 +29,15 @@ class SpringSystem {
   /// The threshold for a small change in node position in one axis.
   late double _stableThreshold;
 
+  // Constants used in the algorithm.
+  // TODO: Tune these constants.
+  static const c1 = 15.0;
+  static const c2 = 150.0;
+  static const c3 = 5000.0;
+  static const c4 = 1.0;
+  static const c5 = 0.0;
+  static const c6 = 10.0;
+
   // Call this when the graph layout area has been updated.
   void updateLayout({required double width, required double height}) {
     _layoutWidth = width;
@@ -30,7 +48,7 @@ class SpringSystem {
     // TODO: Reposition nodes intelligently.
   }
 
-  SpringSystem({
+  Eades({
     required this.adjacencyList,
     required layoutWidth,
     required layoutHeight,
@@ -51,14 +69,6 @@ class SpringSystem {
   /// each node by much in each axis.
   bool iterate({Set<Node> constrainedNodes = const {}}) {
     // TODO: Make these constants named parameters with default values?
-
-    // TODO: Tune these constants.
-    const c1 = 24;
-    const c2 = 240;
-    const c3 = 24;
-    const c4 = 0.1;
-    const c5 = 0.04;
-    const c6 = 0.1;
 
     // Initially assume this layout is stable.
     var isStable = true;
@@ -113,6 +123,9 @@ class SpringSystem {
   }
 
   /// Repeatedly run [iterate] until a stable layout is obtained.
+  ///
+  /// This method is not guaranteed to terminate; be careful when using it on
+  /// complex graphs.
   void iterateUntilStable({Set<Node> constrainedNodes = const {}}) {
     while (!iterate(constrainedNodes: constrainedNodes)) {}
   }

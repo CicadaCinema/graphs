@@ -9,7 +9,12 @@ import 'package:vector_math/vector_math.dart';
 
 import 'src/common.dart';
 
-class SpringGraphDisplay extends StatefulWidget {
+// TODO: Provide a description of the interactive elements of this widget.
+/// A widget providing an interactive visualisation of a graph, using the
+/// Eades layout algorithm.
+///
+/// This widget must be a child of `Row`, `Column`, or `Flex`.
+class EadesInteractive extends StatefulWidget {
   final Graph graphTopology;
 
   final void Function(Canvas, Size)? drawBackground;
@@ -20,7 +25,7 @@ class SpringGraphDisplay extends StatefulWidget {
   /// spring layout algorithm.
   final int intervalTime;
 
-  const SpringGraphDisplay({
+  const EadesInteractive({
     Key? key,
     required this.graphTopology,
     this.intervalTime = 16,
@@ -30,11 +35,11 @@ class SpringGraphDisplay extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<SpringGraphDisplay> createState() => _SpringGraphDisplayState();
+  State<EadesInteractive> createState() => _EadesInteractiveState();
 }
 
-class _SpringGraphDisplayState extends State<SpringGraphDisplay> {
-  late final SpringSystem graphState = SpringSystem(
+class _EadesInteractiveState extends State<EadesInteractive> {
+  late final Eades graphState = Eades(
     // The initial state of the spring system.
     adjacencyList: widget.graphTopology.adjacencyList,
     layoutWidth: layoutWidth,

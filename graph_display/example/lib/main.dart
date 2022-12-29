@@ -45,7 +45,7 @@ class _ExampleAppState extends State<ExampleApp> {
       home: Scaffold(
         body: Column(
           children: [
-            SpringGraphDisplay(
+            EadesInteractive(
               graphTopology: graph,
             )
           ],
