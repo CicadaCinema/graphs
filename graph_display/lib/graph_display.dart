@@ -60,6 +60,8 @@ class _EadesInteractiveState extends State<EadesInteractive> {
   late double layoutWidth;
   late double layoutHeight;
 
+  late final Timer _iterationTimer;
+
   // Default methods for drawing the background, edges and nodes with theme-
   // aware colours.
   late final drawBackground = widget.drawBackground ??
@@ -98,7 +100,8 @@ class _EadesInteractiveState extends State<EadesInteractive> {
 
     // Start a periodic timer which will iterate on the layout according to the
     // spring algorithm every intervalTime milliseconds.
-    Timer.periodic(Duration(milliseconds: widget.intervalTime), (timer) {
+    _iterationTimer =
+        Timer.periodic(Duration(milliseconds: widget.intervalTime), (timer) {
       // Time how long each iteration takes and print it to the debug console.
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       stopwatch.start();
@@ -111,6 +114,12 @@ class _EadesInteractiveState extends State<EadesInteractive> {
       }
       stopwatch.reset();
     });
+  }
+
+  @override
+  void dispose() {
+    _iterationTimer.cancel();
+    super.dispose();
   }
 
   @override
