@@ -14,6 +14,9 @@ class Eades {
   /// The computed layout of the given graph.
   final NodeLayout nodeLayout = {};
 
+  /// The nodes unaffected by iterations of the algorithm.
+  final Set<Node> constrainedNodes = {};
+
   /// The adjacency list describing the topology of the given graph.
   final AdjacencyList adjacencyList;
 
@@ -64,7 +67,7 @@ class Eades {
   ///
   /// Returns [true] if running one iteration does not change the position of
   /// each node by much in each axis.
-  bool iterate({Set<Node> constrainedNodes = const {}}) {
+  bool iterate() {
     // TODO: Make these constants named parameters with default values?
 
     // Initially assume this layout is stable.
@@ -131,7 +134,7 @@ class Eades {
   ///
   /// This method is not guaranteed to terminate; be careful when using it on
   /// complex graphs.
-  void iterateUntilStable({Set<Node> constrainedNodes = const {}}) {
-    while (!iterate(constrainedNodes: constrainedNodes)) {}
+  void iterateUntilStable() {
+    while (!iterate()) {}
   }
 }

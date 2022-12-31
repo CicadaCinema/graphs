@@ -48,10 +48,6 @@ class _EadesInteractiveState extends State<EadesInteractive> {
   );
   final stopwatch = Stopwatch();
 
-  /// The nodes which are currently constrained and whose position is not
-  /// affected by the spring simulation.
-  final _constrainedNodes = <Node>{};
-
   /// The node which is currently being dragged by the user.
   Node? _draggedNode;
 
@@ -107,7 +103,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       stopwatch.start();
       setState(() {
-        graphState.iterate(constrainedNodes: _constrainedNodes);
+        graphState.iterate();
       });
       stopwatch.stop();
       if (kDebugMode) {
@@ -133,7 +129,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
           final closestNode = graphState.nodeLayout.closest(panPosition);
           if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
               10) {
-            _constrainedNodes.toggle(closestNode);
+            graphState.constrainedNodes.toggle(closestNode);
           }
         },
         // If a node drag is started, set [_draggedNode] to the dragged node
@@ -145,8 +141,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
               10) {
             _draggedNode = closestNode;
             _draggedNodeWasConstrained =
-                _constrainedNodes.contains(closestNode);
-            _constrainedNodes.add(closestNode);
+                !graphState.constrainedNodes.add(closestNode);
           }
         },
         // If a node is being dragged, update its position.
@@ -160,7 +155,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
         // previous constrained status of the dragged node.
         onPanEnd: (details) {
           if (!_draggedNodeWasConstrained) {
-            _constrainedNodes.remove(_draggedNode);
+            graphState.constrainedNodes.remove(_draggedNode);
           }
           _draggedNode = null;
         },
