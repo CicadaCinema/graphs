@@ -17,11 +17,9 @@ class Eades {
   /// The adjacency list describing the topology of the given graph.
   final AdjacencyList adjacencyList;
 
-  /// The width of the area where the graph layout is drawn.
-  late double _layoutWidth;
-
-  /// The height of the area where the graph layout is drawn.
-  late double _layoutHeight;
+  /// The vector, the components of which correspond to the dimensions of the
+  /// graph layout drawing area.
+  late Vector2 _layoutVector;
 
   /// The centre of the area where the graph layout is drawn.
   late Vector2 _layoutCentre;
@@ -36,12 +34,11 @@ class Eades {
   static const c3 = 5000.0;
   static const c4 = 1.0;
   static const c5 = 0.0;
-  static const c6 = 10.0;
+  static const nodeRadius = 10.0;
 
   // Call this when the graph layout area has been updated.
   void updateLayout({required double width, required double height}) {
-    _layoutWidth = width;
-    _layoutHeight = height;
+    _layoutVector = Vector2(width, height);
     _stableThreshold = 0.001 * min(width, height);
     _layoutCentre = Vector2(width / 2, height / 2);
 
@@ -53,14 +50,14 @@ class Eades {
     required layoutWidth,
     required layoutHeight,
   }) {
+    updateLayout(width: layoutWidth, height: layoutHeight);
+
     // Assign random positions initially.
     for (final node in adjacencyList.keys) {
       final randomVector2 = Vector2.random();
-      randomVector2.multiply(Vector2(layoutWidth, layoutHeight));
+      randomVector2.multiply(_layoutVector);
       nodeLayout[node] = randomVector2;
     }
-
-    updateLayout(width: layoutWidth, height: layoutHeight);
   }
 
   /// Perform one iteration of the spring algorithm, updating [nodeLayout].
@@ -104,8 +101,16 @@ class Eades {
       nodeLayout.update(node, (position) {
         final positionChange = forceOnThisNode.scaled(c4);
         final newPosition = position + positionChange;
+
+        // Ensure no part of each drawn node is drawn outside the layout area.
+        // Restricting the node position by [Vector2.random()] on each side also
+        // ensures that the position of any two nodes is never clamped to the
+        // same point. Otherwise, groups of nodes may get 'stuck' at a corner
+        // of the layout area, even after the area is expanded.
         newPosition.clamp(
-            Vector2.all(c6), Vector2(_layoutWidth - c6, _layoutHeight - c6));
+          Vector2.all(nodeRadius) + Vector2.random(),
+          _layoutVector - Vector2.all(nodeRadius) - Vector2.random(),
+        );
 
         // If the position of this node changes too much, the layout is not
         // stable.

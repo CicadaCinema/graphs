@@ -10,6 +10,7 @@ import 'package:vector_math/vector_math.dart';
 import 'src/common.dart';
 
 // TODO: Provide a description of the interactive elements of this widget.
+// TODO: Prevent the dragged node from being dragged outside the layout area.
 /// A widget providing an interactive visualisation of a graph, using the
 /// Eades layout algorithm.
 ///
