@@ -110,7 +110,7 @@ class Graph {
       // convenient in some cases.
       if (nodes.isEmpty) {
         throw FormatException(
-            'An adjacency list cannot contain an empty line', line);
+            'An adjacency list cannot contain an empty line.', line);
       }
 
       final sourceNode = IntegerNode(int.parse(nodes.first));

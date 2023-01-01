@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
-import 'data_structures.dart';
+import '../data_structures/data_structures.dart';
 import 'layout_algorithms.dart';
 
 /// An implementation of the Eades layout algorithm.

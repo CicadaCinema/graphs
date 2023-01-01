@@ -45,7 +45,7 @@ class InteractiveGraph extends StatefulWidget {
 }
 
 class _InteractiveGraphState extends State<InteractiveGraph> {
-  final stopwatch = Stopwatch();
+  final _benchmarkStopwatch = Stopwatch();
 
   /// The node which is currently being dragged by the user.
   Node? _draggedNode;
@@ -53,7 +53,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   /// Whether the dragged node was constrained before the drag began.
   bool _draggedNodeWasConstrained = false;
 
-  late Vector2 layoutDimensions;
+  late Vector2 _layoutDimensions;
 
   late final Vector2 _nodeRadiusRestriction = Vector2.all(widget.nodeRadius);
 
@@ -103,15 +103,15 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
         Timer.periodic(Duration(milliseconds: widget.intervalTime), (timer) {
       // Time how long each iteration takes and print it to the debug console.
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
-      stopwatch.start();
+      _benchmarkStopwatch.start();
       setState(() {
         widget.layoutAlgorithm.iterate();
       });
-      stopwatch.stop();
+      _benchmarkStopwatch.stop();
       if (kDebugMode) {
-        print(stopwatch.elapsed.inMicroseconds);
+        print(_benchmarkStopwatch.elapsed.inMicroseconds);
       }
-      stopwatch.reset();
+      _benchmarkStopwatch.reset();
     });
   }
 
@@ -158,7 +158,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             // area.
             newPosition.clamp(
               _nodeRadiusRestriction,
-              layoutDimensions - _nodeRadiusRestriction,
+              _layoutDimensions - _nodeRadiusRestriction,
             );
             widget.layoutAlgorithm.nodeLayout[_draggedNode!] = newPosition;
           }
@@ -173,7 +173,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
         },
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            layoutDimensions = Vector2(
+            _layoutDimensions = Vector2(
               constraints.maxWidth,
               constraints.maxHeight,
             );

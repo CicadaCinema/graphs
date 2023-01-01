@@ -1,6 +1,8 @@
-import '../graph_layout.dart';
+import '../../graph_layout.dart';
 
-/// After creating an instance of this class, you **must** call
+/// A generic interactive graph layout algorithm.
+///
+/// After creating an instance of this class, you *must* call
 /// [initialiseGraph] to pass graph topology data to the algorithm, then call
 /// [updateLayoutParameters] to pass the dimensions of the graph drawing area.
 ///
@@ -30,7 +32,7 @@ abstract class InteractiveLayoutAlgorithm {
 
   /// Perform one iteration of the algorithm, updating [nodeLayout].
   ///
-  /// Returns [true] if running one iteration does not change the position of
+  /// Returns `true` if running one iteration does not change the position of
   /// each node by much in each axis.
   bool iterate();
 
