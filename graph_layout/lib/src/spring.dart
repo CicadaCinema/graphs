@@ -42,7 +42,7 @@ class Eades {
   // Call this when the graph layout area has been updated.
   void updateLayout({required double width, required double height}) {
     _layoutVector = Vector2(width, height);
-    _stableThreshold = 0.001 * min(width, height);
+    _stableThreshold = 0.0001 * min(width, height);
     _layoutCentre = Vector2(width / 2, height / 2);
 
     // TODO: Reposition nodes intelligently.
@@ -117,11 +117,7 @@ class Eades {
 
         // If the position of this node changes too much, the layout is not
         // stable.
-        if (isStable &&
-            max(positionChange.x.abs(), positionChange.y.abs()) >
-                _stableThreshold) {
-          isStable = false;
-        }
+        isStable = isStable && positionChange.length < _stableThreshold;
 
         return newPosition;
       });
