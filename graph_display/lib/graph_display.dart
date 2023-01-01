@@ -10,7 +10,6 @@ import 'package:vector_math/vector_math.dart';
 import 'src/common.dart';
 
 // TODO: Provide a description of the interactive elements of this widget.
-// TODO: Prevent the dragged node from being dragged outside the layout area.
 /// A widget providing an interactive visualisation of a graph, using the
 /// Eades layout algorithm.
 ///
@@ -54,8 +53,9 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   /// Whether the dragged node was constrained before the drag began.
   bool _draggedNodeWasConstrained = false;
 
-  late double layoutWidth;
-  late double layoutHeight;
+  late Vector2 layoutDimensions;
+
+  late final Vector2 _nodeRadiusRestriction = Vector2.all(widget.nodeRadius);
 
   late final Timer _iterationTimer;
 
@@ -153,8 +153,14 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
         // If a node is being dragged, update its position.
         onPanUpdate: (details) {
           if (_draggedNode != null) {
-            widget.layoutAlgorithm.nodeLayout[_draggedNode!] =
-                details.localPosition.toVector2();
+            final newPosition = details.localPosition.toVector2();
+            // Prevent the dragged node from being dragged outside the layout
+            // area.
+            newPosition.clamp(
+              _nodeRadiusRestriction,
+              layoutDimensions - _nodeRadiusRestriction,
+            );
+            widget.layoutAlgorithm.nodeLayout[_draggedNode!] = newPosition;
           }
         },
         // Reset [_draggedNode] when the drag is stopped, respecting the
@@ -167,8 +173,10 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
         },
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            layoutWidth = constraints.maxWidth;
-            layoutHeight = constraints.maxHeight;
+            layoutDimensions = Vector2(
+              constraints.maxWidth,
+              constraints.maxHeight,
+            );
             widget.layoutAlgorithm.updateLayoutParameters(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
