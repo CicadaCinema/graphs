@@ -16,9 +16,9 @@ class Eades extends InteractiveLayoutAlgorithm {
   /// The adjacency list describing the topology of the given graph.
   late AdjacencyList adjacencyList;
 
-  /// The vector, the components of which correspond to the dimensions of the
-  /// graph layout drawing area.
-  late Vector2 _layoutVector;
+  /// The components of this vector correspond to the dimensions of the graph
+  /// layout drawing area.
+  late Vector2 _layoutDimensions;
 
   /// The centre of the area where the graph layout is drawn.
   late Vector2 _layoutCentre;
@@ -48,22 +48,29 @@ class Eades extends InteractiveLayoutAlgorithm {
     required double height,
     required double nodeRadius,
   }) {
-    _layoutVector = Vector2(width, height);
+    final newLayoutDimensions = Vector2(width, height);
     _stableThreshold = 0.0001 * min(width, height);
     _layoutCentre = Vector2(width / 2, height / 2);
     _nodeRadius = nodeRadius;
 
-    // If not initialised, assign random positions initially.
     if (!_isInitialised) {
+      // If uninitialised, assign random positions initially.
       _isInitialised = true;
       for (final node in adjacencyList.keys) {
         final randomVector2 = Vector2.random();
-        randomVector2.multiply(_layoutVector);
+        randomVector2.multiply(newLayoutDimensions);
         nodeLayout[node] = randomVector2;
+      }
+    } else {
+      // Scale node positions according to the change in layout dimensions.
+      final scaleFactor = Vector2(width, height);
+      scaleFactor.divide(_layoutDimensions);
+      for (final node in adjacencyList.keys) {
+        nodeLayout[node]!.multiply(scaleFactor);
       }
     }
 
-    // TODO: Reposition nodes intelligently if initialised.
+    _layoutDimensions = newLayoutDimensions;
   }
 
   Eades({
@@ -119,7 +126,7 @@ class Eades extends InteractiveLayoutAlgorithm {
         // of the layout area, even after the area is expanded.
         newPosition.clamp(
           Vector2.all(_nodeRadius) + Vector2.random(),
-          _layoutVector - Vector2.all(_nodeRadius) - Vector2.random(),
+          _layoutDimensions - Vector2.all(_nodeRadius) - Vector2.random(),
         );
 
         // If the position of this node changes too much, the layout is not
