@@ -1,3 +1,3 @@
 ## Next
 
-* Add widget `SpringGraphDisplay` for displaying interactive graphs using a spring based layout algorithm.
+* Add widget `InteractiveGraph` for displaying interactive graphs using any suitable layout algorithm.

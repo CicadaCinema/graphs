@@ -15,8 +15,10 @@ import 'src/common.dart';
 /// Eades layout algorithm.
 ///
 /// This widget must be a child of `Row`, `Column`, or `Flex`.
-class EadesInteractive extends StatefulWidget {
+class InteractiveGraph extends StatefulWidget {
   final Graph graphTopology;
+
+  final InteractiveLayoutAlgorithm layoutAlgorithm;
 
   final void Function(Canvas, Size)? drawBackground;
   final void Function(Canvas, Vector2, Vector2)? drawEdge;
@@ -26,26 +28,24 @@ class EadesInteractive extends StatefulWidget {
   /// spring layout algorithm.
   final int intervalTime;
 
-  const EadesInteractive({
+  final double nodeRadius;
+
+  const InteractiveGraph({
     Key? key,
     required this.graphTopology,
+    required this.layoutAlgorithm,
     this.intervalTime = 16,
+    this.nodeRadius = 10,
     this.drawBackground,
     this.drawEdge,
     this.drawNode,
   }) : super(key: key);
 
   @override
-  State<EadesInteractive> createState() => _EadesInteractiveState();
+  State<InteractiveGraph> createState() => _InteractiveGraphState();
 }
 
-class _EadesInteractiveState extends State<EadesInteractive> {
-  late final Eades graphState = Eades(
-    // The initial state of the spring system.
-    adjacencyList: widget.graphTopology.adjacencyList,
-    layoutWidth: layoutWidth,
-    layoutHeight: layoutHeight,
-  );
+class _InteractiveGraphState extends State<InteractiveGraph> {
   final stopwatch = Stopwatch();
 
   /// The node which is currently being dragged by the user.
@@ -88,12 +88,14 @@ class _EadesInteractiveState extends State<EadesInteractive> {
       (Canvas canvas, Vector2 position) {
         final nodePaint = Paint()
           ..color = Theme.of(context).colorScheme.primary;
-        canvas.drawCircle(position.toOffset(), 10, nodePaint);
+        canvas.drawCircle(position.toOffset(), widget.nodeRadius, nodePaint);
       };
 
   @override
   initState() {
     super.initState();
+
+    widget.layoutAlgorithm.initialiseGraph(graphTopology: widget.graphTopology);
 
     // Start a periodic timer which will iterate on the layout according to the
     // spring algorithm every intervalTime milliseconds.
@@ -103,7 +105,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       stopwatch.start();
       setState(() {
-        graphState.iterate();
+        widget.layoutAlgorithm.iterate();
       });
       stopwatch.stop();
       if (kDebugMode) {
@@ -126,28 +128,32 @@ class _EadesInteractiveState extends State<EadesInteractive> {
         // If a node is tapped, toggle whether or not it is constrained.
         onTapUp: (details) {
           final panPosition = details.localPosition.toVector2();
-          final closestNode = graphState.nodeLayout.closest(panPosition);
-          if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
-              10) {
-            graphState.constrainedNodes.toggle(closestNode);
+          final closestNode =
+              widget.layoutAlgorithm.nodeLayout.closest(panPosition);
+          if (panPosition
+                  .distanceTo(widget.layoutAlgorithm.nodeLayout[closestNode]!) <
+              widget.nodeRadius) {
+            widget.layoutAlgorithm.constrainedNodes.toggle(closestNode);
           }
         },
         // If a node drag is started, set [_draggedNode] to the dragged node
         // and ensure it is constrained.
         onPanStart: (details) {
           final panPosition = details.localPosition.toVector2();
-          final closestNode = graphState.nodeLayout.closest(panPosition);
-          if (panPosition.distanceTo(graphState.nodeLayout[closestNode]!) <
-              10) {
+          final closestNode =
+              widget.layoutAlgorithm.nodeLayout.closest(panPosition);
+          if (panPosition
+                  .distanceTo(widget.layoutAlgorithm.nodeLayout[closestNode]!) <
+              widget.nodeRadius) {
             _draggedNode = closestNode;
             _draggedNodeWasConstrained =
-                !graphState.constrainedNodes.add(closestNode);
+                !widget.layoutAlgorithm.constrainedNodes.add(closestNode);
           }
         },
         // If a node is being dragged, update its position.
         onPanUpdate: (details) {
           if (_draggedNode != null) {
-            graphState.nodeLayout[_draggedNode!] =
+            widget.layoutAlgorithm.nodeLayout[_draggedNode!] =
                 details.localPosition.toVector2();
           }
         },
@@ -155,7 +161,7 @@ class _EadesInteractiveState extends State<EadesInteractive> {
         // previous constrained status of the dragged node.
         onPanEnd: (details) {
           if (!_draggedNodeWasConstrained) {
-            graphState.constrainedNodes.remove(_draggedNode);
+            widget.layoutAlgorithm.constrainedNodes.remove(_draggedNode);
           }
           _draggedNode = null;
         },
@@ -163,15 +169,16 @@ class _EadesInteractiveState extends State<EadesInteractive> {
           builder: (BuildContext context, BoxConstraints constraints) {
             layoutWidth = constraints.maxWidth;
             layoutHeight = constraints.maxHeight;
-            graphState.updateLayout(
+            widget.layoutAlgorithm.updateLayoutParameters(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
+              nodeRadius: widget.nodeRadius,
             );
 
             return CustomPaint(
               painter: _GraphPainter(
                 edgeList: widget.graphTopology.edgeList,
-                nodes: graphState.nodeLayout,
+                nodes: widget.layoutAlgorithm.nodeLayout,
                 drawBackground: drawBackground,
                 drawEdge: drawEdge,
                 drawNode: drawNode,

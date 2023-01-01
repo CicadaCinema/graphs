@@ -18,7 +18,7 @@ abstract class Node {
 
 /// An implementation of [Node] where the nodes are identified by their integer
 /// [id].
-class IntegerNode implements Node {
+class IntegerNode extends Node {
   final int id;
 
   IntegerNode(this.id);

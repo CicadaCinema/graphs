@@ -3,22 +3,18 @@ import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 
 import 'data_structures.dart';
+import 'layout_algorithms.dart';
 
 /// An implementation of the Eades layout algorithm.
-///
-/// After creating an instance of this class, call [iterate] to execute one
-/// iteration of the algorithm, or run [iterateUntilStable] to repeatedly
-/// perform iterations until the layout becomes stable. Access the computed
-/// layout with [nodeLayout].
-class Eades {
-  /// The computed layout of the given graph.
+class Eades extends InteractiveLayoutAlgorithm {
+  @override
   final NodeLayout nodeLayout = {};
 
-  /// The nodes unaffected by iterations of the algorithm.
+  @override
   final Set<Node> constrainedNodes = {};
 
   /// The adjacency list describing the topology of the given graph.
-  final AdjacencyList adjacencyList;
+  late AdjacencyList adjacencyList;
 
   /// The vector, the components of which correspond to the dimensions of the
   /// graph layout drawing area.
@@ -30,46 +26,57 @@ class Eades {
   /// The threshold for a small change in node position in one axis.
   late double _stableThreshold;
 
-  // Constants used in the algorithm.
-  // TODO: Tune these constants.
-  static const c1 = 15.0;
-  static const c2 = 150.0;
-  static const c3 = 5000.0;
-  static const c4 = 1.0;
-  static const c5 = 0.0;
-  static const nodeRadius = 10.0;
+  late double _nodeRadius;
 
-  // Call this when the graph layout area has been updated.
-  void updateLayout({required double width, required double height}) {
+  bool _isInitialised = false;
+
+  // Constants used in the algorithm.
+  final double c1;
+  final double c2;
+  final double c3;
+  final double c4;
+  final double c5;
+
+  @override
+  void initialiseGraph({required Graph graphTopology}) {
+    adjacencyList = graphTopology.adjacencyList;
+  }
+
+  @override
+  void updateLayoutParameters({
+    required double width,
+    required double height,
+    required double nodeRadius,
+  }) {
     _layoutVector = Vector2(width, height);
     _stableThreshold = 0.0001 * min(width, height);
     _layoutCentre = Vector2(width / 2, height / 2);
+    _nodeRadius = nodeRadius;
 
-    // TODO: Reposition nodes intelligently.
+    // If not initialised, assign random positions initially.
+    if (!_isInitialised) {
+      _isInitialised = true;
+      for (final node in adjacencyList.keys) {
+        final randomVector2 = Vector2.random();
+        randomVector2.multiply(_layoutVector);
+        nodeLayout[node] = randomVector2;
+      }
+    }
+
+    // TODO: Reposition nodes intelligently if initialised.
   }
 
   Eades({
-    required this.adjacencyList,
-    required layoutWidth,
-    required layoutHeight,
-  }) {
-    updateLayout(width: layoutWidth, height: layoutHeight);
+    // TODO: Tune these constants.
+    this.c1 = 15.0,
+    this.c2 = 150.0,
+    this.c3 = 5000.0,
+    this.c4 = 1.0,
+    this.c5 = 0.0,
+  });
 
-    // Assign random positions initially.
-    for (final node in adjacencyList.keys) {
-      final randomVector2 = Vector2.random();
-      randomVector2.multiply(_layoutVector);
-      nodeLayout[node] = randomVector2;
-    }
-  }
-
-  /// Perform one iteration of the spring algorithm, updating [nodeLayout].
-  ///
-  /// Returns [true] if running one iteration does not change the position of
-  /// each node by much in each axis.
+  @override
   bool iterate() {
-    // TODO: Make these constants named parameters with default values?
-
     // Initially assume this layout is stable.
     var isStable = true;
 
@@ -111,8 +118,8 @@ class Eades {
         // same point. Otherwise, groups of nodes may get 'stuck' at a corner
         // of the layout area, even after the area is expanded.
         newPosition.clamp(
-          Vector2.all(nodeRadius) + Vector2.random(),
-          _layoutVector - Vector2.all(nodeRadius) - Vector2.random(),
+          Vector2.all(_nodeRadius) + Vector2.random(),
+          _layoutVector - Vector2.all(_nodeRadius) - Vector2.random(),
         );
 
         // If the position of this node changes too much, the layout is not
@@ -124,13 +131,5 @@ class Eades {
     }
 
     return isStable;
-  }
-
-  /// Repeatedly run [iterate] until a stable layout is obtained.
-  ///
-  /// This method is not guaranteed to terminate; be careful when using it on
-  /// complex graphs.
-  void iterateUntilStable() {
-    while (!iterate()) {}
   }
 }

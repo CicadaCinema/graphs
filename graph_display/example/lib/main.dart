@@ -49,8 +49,9 @@ class _ExampleAppState extends State<ExampleApp> {
     switch (selectedGraph) {
       case DemoGraphId.K8:
         {
-          return EadesInteractive(
+          return InteractiveGraph(
             graphTopology: _generateCompleteGraph(8),
+            layoutAlgorithm: Eades(),
           );
         }
 
@@ -93,8 +94,9 @@ class _ExampleAppState extends State<ExampleApp> {
                     }
                   }
                 }
-                return EadesInteractive(
+                return InteractiveGraph(
                   graphTopology: Graph.fromEdgeList(edges),
+                  layoutAlgorithm: Eades(),
                 );
               } else if (snapshot.hasError) {
                 return const Center(child: Text('Error fetching graph data'));
