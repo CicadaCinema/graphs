@@ -2,78 +2,19 @@ import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
-import '../data_structures/data_structures.dart';
 import 'layout_algorithms.dart';
 
 /// An implementation of the Eades layout algorithm.
 class Eades extends InteractiveLayoutAlgorithm {
-  @override
-  final NodeLayout nodeLayout = {};
-
-  @override
-  final Set<Node> constrainedNodes = {};
-
-  /// The adjacency list describing the topology of the given graph.
-  late AdjacencyList adjacencyList;
-
-  /// The components of this vector correspond to the dimensions of the graph
-  /// layout drawing area.
-  late Vector2 _layoutDimensions;
-
-  /// The centre of the area where the graph layout is drawn.
-  late Vector2 _layoutCentre;
-
-  /// The threshold for a small change in node position in one axis.
-  late double _stableThreshold;
-
-  late double _nodeRadius;
-
-  bool _isInitialised = false;
-
-  // Constants used in the algorithm.
+  // Constants used in the Eades algorithm.
   final double c1;
   final double c2;
   final double c3;
   final double c4;
   final double c5;
 
-  @override
-  void initialiseGraph({required Graph graphTopology}) {
-    adjacencyList = graphTopology.adjacencyList;
-  }
-
-  @override
-  void updateLayoutParameters({
-    required double width,
-    required double height,
-    required double nodeRadius,
-  }) {
-    final newLayoutDimensions = Vector2(width, height);
-    _stableThreshold = 0.0001 * min(width, height);
-    _layoutCentre = Vector2(width / 2, height / 2);
-    _nodeRadius = nodeRadius;
-
-    if (!_isInitialised) {
-      // If uninitialised, assign random positions initially.
-      _isInitialised = true;
-      for (final node in adjacencyList.keys) {
-        final randomVector2 = Vector2.random();
-        randomVector2.multiply(newLayoutDimensions);
-        nodeLayout[node] = randomVector2;
-      }
-    } else {
-      // Scale node positions according to the change in layout dimensions.
-      final scaleFactor = Vector2(width, height);
-      scaleFactor.divide(_layoutDimensions);
-      for (final node in adjacencyList.keys) {
-        nodeLayout[node]!.multiply(scaleFactor);
-      }
-    }
-
-    _layoutDimensions = newLayoutDimensions;
-  }
-
   Eades({
+    required super.graph,
     // TODO: Tune these constants.
     this.c1 = 15.0,
     this.c2 = 150.0,
@@ -89,7 +30,7 @@ class Eades extends InteractiveLayoutAlgorithm {
 
     // Nodes which are free to move.
     final unconstrainedNodes =
-        adjacencyList.keys.toSet().difference(constrainedNodes);
+        graph.adjacencyList.keys.toSet().difference(constrainedNodes);
 
     // Calculate the forces on each node in the graph.
     for (final node in unconstrainedNodes) {
@@ -98,12 +39,12 @@ class Eades extends InteractiveLayoutAlgorithm {
 
       // Iterate over every _other_ node in the graph.
       for (final otherNode
-          in adjacencyList.keys.where((other) => other != node)) {
+          in graph.adjacencyList.keys.where((other) => other != node)) {
         // A vector from node to otherNode.
         final thisToOther = nodeLayout[otherNode]! - nodePosition;
         final d = thisToOther.length;
 
-        if (adjacencyList[node]!.contains(otherNode)) {
+        if (graph.adjacencyList[node]!.contains(otherNode)) {
           // If otherNode is adjacent to node, apply an attractive force.
           forceOnThisNode += thisToOther.normalized().scaled(c1 * log(d / c2));
         } else {
@@ -113,7 +54,7 @@ class Eades extends InteractiveLayoutAlgorithm {
       }
 
       // A small attractive force pulls each node to the centre.
-      forceOnThisNode += (_layoutCentre - nodePosition).scaled(c5);
+      forceOnThisNode += (layoutCentre - nodePosition).scaled(c5);
 
       nodeLayout.update(node, (position) {
         final positionChange = forceOnThisNode.scaled(c4);
@@ -125,13 +66,13 @@ class Eades extends InteractiveLayoutAlgorithm {
         // same point. Otherwise, groups of nodes may get 'stuck' at a corner
         // of the layout area, even after the area is expanded.
         newPosition.clamp(
-          Vector2.all(_nodeRadius) + Vector2.random(),
-          _layoutDimensions - Vector2.all(_nodeRadius) - Vector2.random(),
+          Vector2.all(nodeRadius) + Vector2.random(),
+          layoutDimensions - Vector2.all(nodeRadius) - Vector2.random(),
         );
 
         // If the position of this node changes too much, the layout is not
         // stable.
-        isStable = isStable && positionChange.length < _stableThreshold;
+        isStable = isStable && positionChange.length < stableThreshold;
 
         return newPosition;
       });

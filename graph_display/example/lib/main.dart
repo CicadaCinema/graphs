@@ -52,8 +52,7 @@ class _ExampleAppState extends State<ExampleApp> {
       case DemoGraphId.K8:
         {
           return InteractiveGraph(
-            graphTopology: _generateCompleteGraph(8),
-            layoutAlgorithm: Eades(),
+            layoutAlgorithm: Eades(graph: _generateCompleteGraph(8)),
           );
         }
 
@@ -97,8 +96,7 @@ class _ExampleAppState extends State<ExampleApp> {
                   }
                 }
                 return InteractiveGraph(
-                  graphTopology: Graph.fromEdgeList(edges),
-                  layoutAlgorithm: Eades(),
+                  layoutAlgorithm: Eades(graph: Graph.fromEdgeList(edges)),
                   backgroundColour: Colors.blueGrey.shade50,
                   edgeColour: Colors.blueGrey,
                   edgeThickness: 0.2,

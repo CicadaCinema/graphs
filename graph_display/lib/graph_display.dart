@@ -15,8 +15,6 @@ import 'src/common.dart';
 ///
 /// This widget must be a child of `Row`, `Column`, or `Flex`.
 class InteractiveGraph extends StatefulWidget {
-  final Graph graphTopology;
-
   final InteractiveLayoutAlgorithm layoutAlgorithm;
 
   final void Function(Canvas, Size)? drawBackground;
@@ -36,7 +34,6 @@ class InteractiveGraph extends StatefulWidget {
 
   const InteractiveGraph({
     Key? key,
-    required this.graphTopology,
     required this.layoutAlgorithm,
     this.intervalTime = 16,
     this.edgeThickness = 1,
@@ -107,8 +104,6 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   initState() {
     super.initState();
 
-    widget.layoutAlgorithm.initialiseGraph(graphTopology: widget.graphTopology);
-
     // Start a periodic timer which will iterate on the layout according to the
     // spring algorithm every intervalTime milliseconds.
     _iterationTimer =
@@ -121,7 +116,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
       });
       _benchmarkStopwatch.stop();
       if (kDebugMode) {
-        print(_benchmarkStopwatch.elapsed.inMicroseconds);
+        //print(_benchmarkStopwatch.elapsed.inMicroseconds);
       }
       _benchmarkStopwatch.reset();
     });
@@ -197,7 +192,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
             return CustomPaint(
               painter: _GraphPainter(
-                edgeList: widget.graphTopology.edgeList,
+                edgeList: widget.layoutAlgorithm.graph.edgeList,
                 nodes: widget.layoutAlgorithm.nodeLayout,
                 drawBackground: drawBackground,
                 drawEdge: drawEdge,

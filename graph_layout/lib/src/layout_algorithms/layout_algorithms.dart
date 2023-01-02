@@ -1,5 +1,11 @@
+import 'dart:math';
+
+import 'package:vector_math/vector_math.dart';
+
 import '../../graph_layout.dart';
 
+// TODO: Consider using @protected to prevent fields of this class from being used outside its subclasses.
+// See: https://api.flutter.dev/flutter/meta/protected-constant.html .
 /// A generic interactive graph layout algorithm.
 ///
 /// After creating an instance of this class, you *must* call
@@ -10,14 +16,33 @@ import '../../graph_layout.dart';
 /// [iterateUntilStable] to repeatedly perform iterations until the layout
 /// becomes stable. Access the computed layout with [nodeLayout].
 abstract class InteractiveLayoutAlgorithm {
+  /// The topology of the given graph.
+  final Graph graph;
+
   /// The computed layout of the given graph.
-  NodeLayout get nodeLayout;
+  final NodeLayout nodeLayout = {};
 
   /// The nodes unaffected by iterations of the algorithm.
-  Set<Node> get constrainedNodes;
+  final Set<Node> constrainedNodes = {};
 
-  /// Initialise the algorithm with some graph topology data.
-  void initialiseGraph({required Graph graphTopology});
+  /// The components of this vector correspond to the dimensions of the graph
+  /// layout drawing area.
+  Vector2 layoutDimensions = Vector2.all(1);
+
+  /// The centre of the area where the graph layout is drawn.
+  Vector2 layoutCentre = Vector2.all(0.5);
+
+  /// The threshold for a small change in node position in one axis.
+  double stableThreshold = 0.0001;
+
+  late double nodeRadius;
+
+  InteractiveLayoutAlgorithm({required this.graph}) {
+    // Initially assign random positions within the unit square.
+    for (final node in graph.adjacencyList.keys) {
+      nodeLayout[node] = Vector2.random();
+    }
+  }
 
   /// Update (or initialise) the graph layout area and the radius of each node.
   ///
@@ -28,7 +53,20 @@ abstract class InteractiveLayoutAlgorithm {
     required double width,
     required double height,
     required double nodeRadius,
-  });
+  }) {
+    stableThreshold = 0.0001 * min(width, height);
+    layoutCentre = Vector2(width / 2, height / 2);
+    this.nodeRadius = nodeRadius;
+
+    // Scale node positions according to the change in layout dimensions.
+    final scaleFactor = Vector2(width, height);
+    scaleFactor.divide(layoutDimensions);
+    for (final node in graph.adjacencyList.keys) {
+      nodeLayout[node]!.multiply(scaleFactor);
+    }
+
+    layoutDimensions = Vector2(width, height);
+  }
 
   /// Perform one iteration of the algorithm, updating [nodeLayout].
   ///
