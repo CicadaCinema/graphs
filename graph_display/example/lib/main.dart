@@ -99,32 +99,10 @@ class _ExampleAppState extends State<ExampleApp> {
                 return InteractiveGraph(
                   graphTopology: Graph.fromEdgeList(edges),
                   layoutAlgorithm: Eades(),
+                  backgroundColour: Colors.blueGrey.shade50,
+                  edgeColour: Colors.blueGrey,
+                  edgeThickness: 0.2,
                   nodeRadius: 15,
-                  // TODO: Create convenience fields backgroundColour, edgeColour, edgeThickness, nodeColour
-                  // (similar to how nodeRadius is implemented) so that the user
-                  // doesn't have to specify the entire draw... callback.
-                  drawBackground: (Canvas canvas, Size size) {
-                    final backgroundPaint = Paint()
-                      ..color = Colors.blueGrey.shade50;
-                    canvas.drawRect(
-                      Rect.fromPoints(
-                          Offset.zero, Offset(size.width, size.height)),
-                      backgroundPaint,
-                    );
-                  },
-                  drawEdge: (Canvas canvas, Edge edge, Vector2 leftPosition,
-                      Vector2 rightPosition) {
-                    final edgePaint = Paint()
-                      ..strokeWidth = 0.2
-                      ..color = Colors.blueGrey
-                      ..style = PaintingStyle.stroke;
-                    canvas.drawPath(
-                        Path()
-                          ..moveTo(leftPosition.x, leftPosition.y)
-                          ..lineTo(rightPosition.x, rightPosition.y)
-                          ..close(),
-                        edgePaint);
-                  },
                   drawNode: (Canvas canvas, Node node, Vector2 position) {
                     // See jean_node_data.dart for the source of this colour map.
                     final nodePaint = Paint()..color = nodeToColour[node]!;

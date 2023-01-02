@@ -27,14 +27,23 @@ class InteractiveGraph extends StatefulWidget {
   /// spring layout algorithm.
   final int intervalTime;
 
+  final double edgeThickness;
   final double nodeRadius;
+
+  final Color? backgroundColour;
+  final Color? edgeColour;
+  final Color? nodeColour;
 
   const InteractiveGraph({
     Key? key,
     required this.graphTopology,
     required this.layoutAlgorithm,
     this.intervalTime = 16,
+    this.edgeThickness = 1,
     this.nodeRadius = 10,
+    this.backgroundColour,
+    this.edgeColour,
+    this.nodeColour,
     this.drawBackground,
     this.drawEdge,
     this.drawNode,
@@ -61,34 +70,37 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   // Default methods for drawing the background, edges and nodes with theme-
   // aware colours.
+  late final _backgroundPaint = Paint()
+    ..color =
+        widget.backgroundColour ?? Theme.of(context).colorScheme.background;
+  late final _edgePaint = Paint()
+    ..strokeWidth = widget.edgeThickness
+    ..color = widget.edgeColour ??
+        Theme.of(context).colorScheme.primary.withOpacity(0.25)
+    ..style = PaintingStyle.stroke;
+  late final _nodePaint = Paint()
+    ..color = widget.nodeColour ?? Theme.of(context).colorScheme.primary;
+
   late final drawBackground = widget.drawBackground ??
       (Canvas canvas, Size size) {
-        final backgroundPaint = Paint()
-          ..color = Theme.of(context).colorScheme.background;
         // A unit square serves as a background.
         canvas.drawRect(
           Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
-          backgroundPaint,
+          _backgroundPaint,
         );
       };
   late final drawEdge = widget.drawEdge ??
       (Canvas canvas, Edge edge, Vector2 leftPosition, Vector2 rightPosition) {
-        final edgePaint = Paint()
-          ..strokeWidth = 1
-          ..color = Theme.of(context).colorScheme.primary.withAlpha(64)
-          ..style = PaintingStyle.stroke;
         canvas.drawPath(
             Path()
               ..moveTo(leftPosition.x, leftPosition.y)
               ..lineTo(rightPosition.x, rightPosition.y)
               ..close(),
-            edgePaint);
+            _edgePaint);
       };
   late final drawNode = widget.drawNode ??
       (Canvas canvas, Node node, Vector2 position) {
-        final nodePaint = Paint()
-          ..color = Theme.of(context).colorScheme.primary;
-        canvas.drawCircle(position.toOffset(), widget.nodeRadius, nodePaint);
+        canvas.drawCircle(position.toOffset(), widget.nodeRadius, _nodePaint);
       };
 
   @override
