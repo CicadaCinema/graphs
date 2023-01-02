@@ -1,6 +1,8 @@
+import 'package:example/jean_node_data.dart';
 import 'package:flutter/material.dart';
 import 'package:graph_display/graph_display.dart';
 import 'package:graph_layout/graph_layout.dart';
+import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:http/http.dart' as http;
 
 /// Identifiers for each of the demo graphs.
@@ -25,7 +27,7 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  var selectedGraph = DemoGraphId.K8;
+  var selectedGraph = DemoGraphId.jean;
 
   /// Returns a complete [Graph] on [nodeNumber] nodes.
   Graph _generateCompleteGraph(int nodeNumber) {
@@ -97,6 +99,56 @@ class _ExampleAppState extends State<ExampleApp> {
                 return InteractiveGraph(
                   graphTopology: Graph.fromEdgeList(edges),
                   layoutAlgorithm: Eades(),
+                  nodeRadius: 15,
+                  // TODO: Create convenience fields backgroundColour, edgeColour, edgeThickness, nodeColour
+                  // (similar to how nodeRadius is implemented) so that the user
+                  // doesn't have to specify the entire draw... callback.
+                  drawBackground: (Canvas canvas, Size size) {
+                    final backgroundPaint = Paint()
+                      ..color = Colors.blueGrey.shade50;
+                    canvas.drawRect(
+                      Rect.fromPoints(
+                          Offset.zero, Offset(size.width, size.height)),
+                      backgroundPaint,
+                    );
+                  },
+                  drawEdge: (Canvas canvas, Edge edge, Vector2 leftPosition,
+                      Vector2 rightPosition) {
+                    final edgePaint = Paint()
+                      ..strokeWidth = 0.2
+                      ..color = Colors.blueGrey
+                      ..style = PaintingStyle.stroke;
+                    canvas.drawPath(
+                        Path()
+                          ..moveTo(leftPosition.x, leftPosition.y)
+                          ..lineTo(rightPosition.x, rightPosition.y)
+                          ..close(),
+                        edgePaint);
+                  },
+                  drawNode: (Canvas canvas, Node node, Vector2 position) {
+                    // See jean_node_data.dart for the source of this colour map.
+                    final nodePaint = Paint()..color = nodeToColour[node]!;
+                    final nodeOffset = Offset(position.x, position.y);
+                    canvas.drawCircle(nodeOffset, 15, nodePaint);
+
+                    // Draw the character label. See jean_node_data.dart for the
+                    // source of this data.
+                    final textSpan = TextSpan(
+                      text: nodeToName[node]!,
+                      style: const TextStyle(color: Colors.black),
+                    );
+                    final textPainter = TextPainter(
+                      text: textSpan,
+                      textDirection: TextDirection.ltr,
+                    );
+                    textPainter.layout();
+                    textPainter.paint(
+                      canvas,
+                      nodeOffset - const Offset(7.5, 10),
+                    );
+                    // TODO: Eventually we will have to call `textPainter.dispose()` here.
+                    // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
+                  },
                 );
               } else if (snapshot.hasError) {
                 return const Center(child: Text('Error fetching graph data'));

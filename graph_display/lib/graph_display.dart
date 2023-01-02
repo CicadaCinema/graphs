@@ -20,8 +20,8 @@ class InteractiveGraph extends StatefulWidget {
   final InteractiveLayoutAlgorithm layoutAlgorithm;
 
   final void Function(Canvas, Size)? drawBackground;
-  final void Function(Canvas, Vector2, Vector2)? drawEdge;
-  final void Function(Canvas, Vector2)? drawNode;
+  final void Function(Canvas, Edge, Vector2, Vector2)? drawEdge;
+  final void Function(Canvas, Node, Vector2)? drawNode;
 
   /// The period of time, in milliseconds, between successive iterations of the
   /// spring layout algorithm.
@@ -72,7 +72,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
         );
       };
   late final drawEdge = widget.drawEdge ??
-      (Canvas canvas, Vector2 leftPosition, Vector2 rightPosition) {
+      (Canvas canvas, Edge edge, Vector2 leftPosition, Vector2 rightPosition) {
         final edgePaint = Paint()
           ..strokeWidth = 1
           ..color = Theme.of(context).colorScheme.primary.withAlpha(64)
@@ -85,7 +85,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             edgePaint);
       };
   late final drawNode = widget.drawNode ??
-      (Canvas canvas, Vector2 position) {
+      (Canvas canvas, Node node, Vector2 position) {
         final nodePaint = Paint()
           ..color = Theme.of(context).colorScheme.primary;
         canvas.drawCircle(position.toOffset(), widget.nodeRadius, nodePaint);
@@ -205,8 +205,8 @@ class _GraphPainter extends CustomPainter {
   final NodeLayout nodes;
 
   final void Function(Canvas, Size) drawBackground;
-  final void Function(Canvas, Vector2, Vector2) drawEdge;
-  final void Function(Canvas, Vector2) drawNode;
+  final void Function(Canvas, Edge, Vector2, Vector2) drawEdge;
+  final void Function(Canvas, Node, Vector2) drawNode;
 
   _GraphPainter({
     required this.edgeList,
@@ -222,12 +222,12 @@ class _GraphPainter extends CustomPainter {
 
     // Draw the graph edges according to the computed layout.
     for (final edge in edgeList) {
-      drawEdge(canvas, nodes[edge.left]!, nodes[edge.right]!);
+      drawEdge(canvas, edge, nodes[edge.left]!, nodes[edge.right]!);
     }
 
     // Draw each of the nodes, so that they overlap the edges.
-    for (final nodePosition in nodes.values) {
-      drawNode(canvas, nodePosition);
+    for (final nodeEntry in nodes.entries) {
+      drawNode(canvas, nodeEntry.key, nodeEntry.value);
     }
   }
 
