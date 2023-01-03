@@ -52,7 +52,8 @@ class _ExampleAppState extends State<ExampleApp> {
       case DemoGraphId.K8:
         {
           return InteractiveGraph(
-            layoutAlgorithm: Eades(graph: _generateCompleteGraph(8)),
+            layoutAlgorithm:
+                FruchtermanReingold(graph: _generateCompleteGraph(8)),
           );
         }
 
@@ -64,7 +65,8 @@ class _ExampleAppState extends State<ExampleApp> {
               '/pub/sgb/jean.dat',
             )),
             builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-              if (snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
                 final edges = <Edge>{};
 
                 // Each match corresponds to a chapter, each of which contains
@@ -96,7 +98,8 @@ class _ExampleAppState extends State<ExampleApp> {
                   }
                 }
                 return InteractiveGraph(
-                  layoutAlgorithm: Eades(graph: Graph.fromEdgeList(edges)),
+                  layoutAlgorithm:
+                      FruchtermanReingold(graph: Graph.fromEdgeList(edges)),
                   backgroundColour: Colors.blueGrey.shade50,
                   edgeColour: Colors.blueGrey,
                   edgeThickness: 0.2,

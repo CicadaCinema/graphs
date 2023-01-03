@@ -27,13 +27,13 @@ abstract class InteractiveLayoutAlgorithm {
 
   /// The components of this vector correspond to the dimensions of the graph
   /// layout drawing area.
-  Vector2 layoutDimensions = Vector2.all(1);
+  var layoutDimensions = Vector2.all(1);
 
   /// The centre of the area where the graph layout is drawn.
-  Vector2 layoutCentre = Vector2.all(0.5);
+  late var layoutCentre = layoutDimensions / 2;
 
   /// The threshold for a small change in node position in one axis.
-  double stableThreshold = 0.0001;
+  var stableThreshold = 0.0001;
 
   late double nodeRadius;
 
@@ -55,7 +55,6 @@ abstract class InteractiveLayoutAlgorithm {
     required double nodeRadius,
   }) {
     stableThreshold = 0.0001 * min(width, height);
-    layoutCentre = Vector2(width / 2, height / 2);
     this.nodeRadius = nodeRadius;
 
     // Scale node positions according to the change in layout dimensions.
@@ -66,6 +65,7 @@ abstract class InteractiveLayoutAlgorithm {
     }
 
     layoutDimensions = Vector2(width, height);
+    layoutCentre = layoutDimensions / 2;
   }
 
   /// Perform one iteration of the algorithm, updating [nodeLayout].

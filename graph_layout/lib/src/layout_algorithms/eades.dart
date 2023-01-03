@@ -11,6 +11,8 @@ class Eades extends InteractiveLayoutAlgorithm {
   final double c2;
   final double c3;
   final double c4;
+
+  // TODO: Give this constant a more sensible name, perhaps include it in InteractiveLayoutAlgorithm instead.
   final double c5;
 
   Eades({
@@ -70,8 +72,7 @@ class Eades extends InteractiveLayoutAlgorithm {
           layoutDimensions - Vector2.all(nodeRadius) - Vector2.random(),
         );
 
-        // If the position of this node changes too much, the layout is not
-        // stable.
+        // If the position of this node changes too much, the layout is unstable.
         isStable = isStable && positionChange.length < stableThreshold;
 
         return newPosition;
