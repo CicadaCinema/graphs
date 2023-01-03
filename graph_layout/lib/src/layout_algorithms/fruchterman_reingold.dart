@@ -29,8 +29,8 @@ class FruchtermanReingold extends InteractiveLayoutAlgorithm {
     required super.graph,
     // TODO: Tune these constants.
     this.C = 0.5,
-    this.tDecay = 0.985,
-    double tInitial = 25.0,
+    this.tDecay = 0.99,
+    double tInitial = 300.0,
   }) : t = tInitial;
 
   @override
@@ -84,11 +84,7 @@ class FruchtermanReingold extends InteractiveLayoutAlgorithm {
             min(nodeDisplacement[node]!.length, t);
         final newPosition = position + positionChange;
 
-        // Ensure no part of each drawn node is drawn outside the layout area.
-        newPosition.clamp(
-          Vector2.all(nodeRadius),
-          layoutDimensions - Vector2.all(nodeRadius),
-        );
+        clampNodeVector(newPosition);
 
         // If the position of this node changes too much, the layout is unstable.
         isStable = isStable && positionChange.length < stableThreshold;

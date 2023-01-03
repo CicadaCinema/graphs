@@ -68,6 +68,19 @@ abstract class InteractiveLayoutAlgorithm {
     layoutCentre = layoutDimensions / 2;
   }
 
+  /// Ensure no part of each drawn node is drawn outside the layout area.
+  ///
+  /// Restricting the node position by [Vector2.random()] on each side also
+  /// ensures that the position of any two nodes is never clamped to the
+  /// same point. Otherwise, groups of nodes may get 'stuck' at a corner
+  /// of the layout area, even after the area is expanded.
+  void clampNodeVector(Vector2 nodePosition) {
+    nodePosition.clamp(
+      Vector2.all(nodeRadius) + Vector2.random(),
+      layoutDimensions - Vector2.all(nodeRadius) - Vector2.random(),
+    );
+  }
+
   /// Perform one iteration of the algorithm, updating [nodeLayout].
   ///
   /// Returns `true` if running one iteration does not change the position of

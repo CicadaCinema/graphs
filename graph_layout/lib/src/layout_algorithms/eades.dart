@@ -62,15 +62,7 @@ class Eades extends InteractiveLayoutAlgorithm {
         final positionChange = forceOnThisNode.scaled(c4);
         final newPosition = position + positionChange;
 
-        // Ensure no part of each drawn node is drawn outside the layout area.
-        // Restricting the node position by [Vector2.random()] on each side also
-        // ensures that the position of any two nodes is never clamped to the
-        // same point. Otherwise, groups of nodes may get 'stuck' at a corner
-        // of the layout area, even after the area is expanded.
-        newPosition.clamp(
-          Vector2.all(nodeRadius) + Vector2.random(),
-          layoutDimensions - Vector2.all(nodeRadius) - Vector2.random(),
-        );
+        clampNodeVector(newPosition);
 
         // If the position of this node changes too much, the layout is unstable.
         isStable = isStable && positionChange.length < stableThreshold;
