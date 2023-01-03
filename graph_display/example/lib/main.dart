@@ -7,12 +7,29 @@ import 'package:http/http.dart' as http;
 
 /// Identifiers for each of the demo graphs.
 // ignore: constant_identifier_names
-enum DemoGraphId { K8, jean }
+enum _DemoGraphs { K8, jean }
+
+const _algorithmNames = [
+  'Eades',
+  'Fruchterman-Reingold',
+];
+
+InteractiveLayoutAlgorithm _constructAlgorithm(
+    int algorithmIndex, Graph graph) {
+  switch (algorithmIndex) {
+    case 0:
+      return Eades(graph: graph);
+    case 1:
+      return FruchtermanReingold(graph: graph);
+    default:
+      throw ArgumentError.value(algorithmIndex, 'algorithmIndex');
+  }
+}
 
 /// Human-readable labels for the demo graphs.
 const demoNames = {
-  DemoGraphId.K8: 'Complete graph on 8 vertices',
-  DemoGraphId.jean: 'Character co-occurrences in Les Misérables'
+  _DemoGraphs.K8: 'Complete graph on 8 vertices',
+  _DemoGraphs.jean: 'Character co-occurrences in Les Misérables'
 };
 
 void main() {
@@ -27,7 +44,8 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  var selectedGraph = DemoGraphId.jean;
+  var _selectedGraph = _DemoGraphs.jean;
+  var _selectedAlgorithm = 0;
 
   /// Returns a complete [Graph] on [nodeNumber] nodes.
   Graph _generateCompleteGraph(int nodeNumber) {
@@ -47,96 +65,96 @@ class _ExampleAppState extends State<ExampleApp> {
     return Graph.fromEdgeList(edges);
   }
 
-  Widget displayDemo() {
-    switch (selectedGraph) {
-      case DemoGraphId.K8:
-        {
-          return InteractiveGraph(
-            layoutAlgorithm:
-                FruchtermanReingold(graph: _generateCompleteGraph(8)),
-          );
-        }
+  Widget _displayDemo() {
+    switch (_selectedGraph) {
+      case _DemoGraphs.K8:
+        return InteractiveGraph(
+          layoutAlgorithm: _constructAlgorithm(
+            _selectedAlgorithm,
+            _generateCompleteGraph(8),
+          ),
+        );
 
-      case DemoGraphId.jean:
-        {
-          return FutureBuilder<String>(
-            future: http.read(Uri.http(
-              'ftp.cs.stanford.edu',
-              '/pub/sgb/jean.dat',
-            )),
-            builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                final edges = <Edge>{};
+      case _DemoGraphs.jean:
+        return FutureBuilder<String>(
+          future: http.read(Uri.http(
+            'ftp.cs.stanford.edu',
+            '/pub/sgb/jean.dat',
+          )),
+          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              final edges = <Edge>{};
 
-                // Each match corresponds to a chapter, each of which contains
-                // one or more scenes.
-                final matches = RegExp(r'(?<=[0-9]:).*$', multiLine: true)
-                    .allMatches(snapshot.data!)
-                    .map((match) => match[0]!.split(';'))
-                    .expand((e) => e);
+              // Each match corresponds to a chapter, each of which contains
+              // one or more scenes.
+              final matches = RegExp(r'(?<=[0-9]:).*$', multiLine: true)
+                  .allMatches(snapshot.data!)
+                  .map((match) => match[0]!.split(';'))
+                  .expand((e) => e);
 
-                // Iterate over each scene. Two characters are said to co-occur
-                // if they appear in the same scene.
-                for (final m in matches) {
-                  // The characters in this scene.
-                  final characters = m
-                      .split(',')
-                      .map((characterString) =>
-                          IntegerNode(characterString.hashCode))
-                      .toList();
+              // Iterate over each scene. Two characters are said to co-occur
+              // if they appear in the same scene.
+              for (final m in matches) {
+                // The characters in this scene.
+                final characters = m
+                    .split(',')
+                    .map((characterString) =>
+                        IntegerNode(characterString.hashCode))
+                    .toList();
 
-                  // Find each pair in this group and add it as an edge. There
-                  // is no need to worry about time complexity here because
-                  // [characters] is small.
-                  for (final char1 in characters) {
-                    for (final char2 in characters) {
-                      if (char1 != char2) {
-                        edges.add(Edge(left: char1, right: char2));
-                      }
+                // Find each pair in this group and add it as an edge. There
+                // is no need to worry about time complexity here because
+                // [characters] is small.
+                for (final char1 in characters) {
+                  for (final char2 in characters) {
+                    if (char1 != char2) {
+                      edges.add(Edge(left: char1, right: char2));
                     }
                   }
                 }
-                return InteractiveGraph(
-                  layoutAlgorithm:
-                      FruchtermanReingold(graph: Graph.fromEdgeList(edges)),
-                  backgroundColour: Colors.blueGrey.shade50,
-                  edgeColour: Colors.blueGrey,
-                  edgeThickness: 0.2,
-                  nodeRadius: 15,
-                  drawNode: (Canvas canvas, Node node, Vector2 position) {
-                    // See jean_node_data.dart for the source of this colour map.
-                    final nodePaint = Paint()..color = nodeToColour[node]!;
-                    final nodeOffset = Offset(position.x, position.y);
-                    canvas.drawCircle(nodeOffset, 15, nodePaint);
-
-                    // Draw the character label. See jean_node_data.dart for the
-                    // source of this data.
-                    final textSpan = TextSpan(
-                      text: nodeToName[node]!,
-                      style: const TextStyle(color: Colors.black),
-                    );
-                    final textPainter = TextPainter(
-                      text: textSpan,
-                      textDirection: TextDirection.ltr,
-                    );
-                    textPainter.layout();
-                    textPainter.paint(
-                      canvas,
-                      nodeOffset - const Offset(7.5, 10),
-                    );
-                    // TODO: Eventually we will have to call `textPainter.dispose()` here.
-                    // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
-                  },
-                );
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Error fetching graph data'));
-              } else {
-                return const Center(child: CircularProgressIndicator());
               }
-            },
-          );
-        }
+              return InteractiveGraph(
+                layoutAlgorithm: _constructAlgorithm(
+                  _selectedAlgorithm,
+                  Graph.fromEdgeList(edges),
+                ),
+                backgroundColour: Colors.blueGrey.shade50,
+                edgeColour: Colors.blueGrey,
+                edgeThickness: 0.2,
+                nodeRadius: 15,
+                drawNode: (Canvas canvas, Node node, Vector2 position) {
+                  // See jean_node_data.dart for the source of this colour map.
+                  final nodePaint = Paint()..color = nodeToColour[node]!;
+                  final nodeOffset = Offset(position.x, position.y);
+                  canvas.drawCircle(nodeOffset, 15, nodePaint);
+
+                  // Draw the character label. See jean_node_data.dart for the
+                  // source of this data.
+                  final textSpan = TextSpan(
+                    text: nodeToName[node]!,
+                    style: const TextStyle(color: Colors.black),
+                  );
+                  final textPainter = TextPainter(
+                    text: textSpan,
+                    textDirection: TextDirection.ltr,
+                  );
+                  textPainter.layout();
+                  textPainter.paint(
+                    canvas,
+                    nodeOffset - const Offset(7.5, 10),
+                  );
+                  // TODO: Eventually we will have to call `textPainter.dispose()` here.
+                  // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
+                },
+              );
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('Error fetching graph data'));
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        );
     }
   }
 
@@ -145,24 +163,40 @@ class _ExampleAppState extends State<ExampleApp> {
     return MaterialApp(
       home: Scaffold(
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // A dropdown menu which selects the demo graph to display.
             DropdownButton(
-              value: selectedGraph,
+              value: _selectedGraph,
               onChanged: (value) {
                 setState(() {
-                  selectedGraph = value!;
+                  _selectedGraph = value!;
                 });
               },
-              items: DemoGraphId.values
+              items: _DemoGraphs.values
                   .map((demoId) => DropdownMenuItem(
                         value: demoId,
                         child: Text(demoNames[demoId]!),
                       ))
                   .toList(),
             ),
+            // A dropdown menu which selects the algorithm to use in the demo.
+            DropdownButton(
+              value: _selectedAlgorithm,
+              onChanged: (value) {
+                setState(() {
+                  _selectedAlgorithm = value!;
+                });
+              },
+              items: List.generate(_algorithmNames.length, (i) => i)
+                  .map((algorithmIndex) => DropdownMenuItem(
+                        value: algorithmIndex,
+                        child: Text(_algorithmNames[algorithmIndex]),
+                      ))
+                  .toList(),
+            ),
             // The graph demo itself.
-            displayDemo(),
+            _displayDemo(),
           ],
         ),
       ),
