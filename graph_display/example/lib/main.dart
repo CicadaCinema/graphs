@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:graph_display/graph_display.dart';
 import 'package:graph_layout/graph_layout.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
-import 'package:http/http.dart' as http;
 
 /// Identifiers for each of the demo graphs.
 // ignore: constant_identifier_names
@@ -77,10 +76,7 @@ class _ExampleAppState extends State<ExampleApp> {
 
       case _DemoGraphs.jean:
         return FutureBuilder<String>(
-          future: http.read(Uri.http(
-            'ftp.cs.stanford.edu',
-            '/pub/sgb/jean.dat',
-          )),
+          future: DefaultAssetBundle.of(context).loadString('assets/jean.dat'),
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
             if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {

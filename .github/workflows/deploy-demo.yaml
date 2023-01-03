@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
         working-directory: graph_display/example
       - name: Build demo for the web
-        run: flutter build web
+        run: flutter build web --base-href "/graphs/"
         working-directory: graph_display/example
       - name: Setup Pages
         uses: actions/configure-pages@v2
