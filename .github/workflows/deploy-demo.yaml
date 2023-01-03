@@ -30,10 +30,10 @@ jobs:
           channel: 'stable'
       - name: Resolve dependencies
         run: flutter pub get
-        working-directory: graph_layout/example
+        working-directory: graph_display/example
       - name: Build demo for the web
         run: flutter build web
-        working-directory: graph_layout/example
+        working-directory: graph_display/example
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact
