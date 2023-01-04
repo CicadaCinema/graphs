@@ -4,32 +4,28 @@ import 'package:graph_display/graph_display.dart';
 import 'package:graph_layout/graph_layout.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
-/// Identifiers for each of the demo graphs.
-// ignore: constant_identifier_names
-enum _DemoGraphs { K8, jean }
-
-const _algorithmNames = [
-  'Eades',
-  'Fruchterman-Reingold',
+const _demoNames = [
+  'Complete graph on 8 vertices, Eades algorithm',
+  'Character co-occurrences in Les Misérables, Eades algorithm',
 ];
 
-InteractiveLayoutAlgorithm _constructAlgorithm(
-    int algorithmIndex, Graph graph) {
-  switch (algorithmIndex) {
-    case 0:
-      return Eades(graph: graph);
-    case 1:
-      return FruchtermanReingold(graph: graph);
-    default:
-      throw ArgumentError.value(algorithmIndex, 'algorithmIndex');
-  }
-}
+/// Returns a complete [Graph] on [nodeNumber] nodes.
+Graph _generateCompleteGraph(int nodeNumber) {
+  final nodes = List<int>.generate(nodeNumber, (i) => i + 1)
+      .map((i) => IntegerNode(i))
+      .toList();
 
-/// Human-readable labels for the demo graphs.
-const demoNames = {
-  _DemoGraphs.K8: 'Complete graph on 8 vertices',
-  _DemoGraphs.jean: 'Character co-occurrences in Les Misérables'
-};
+  final edges = <Edge>{};
+  for (int i = 0; i < nodeNumber; i++) {
+    for (int j = 0; j < nodeNumber; j++) {
+      if (i != j) {
+        edges.add(Edge(left: nodes[i], right: nodes[j]));
+      }
+    }
+  }
+
+  return Graph.fromEdgeList(edges);
+}
 
 void main() {
   runApp(const ExampleApp());
@@ -43,38 +39,18 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  var _selectedGraph = _DemoGraphs.jean;
-  var _selectedAlgorithm = 0;
-
-  /// Returns a complete [Graph] on [nodeNumber] nodes.
-  Graph _generateCompleteGraph(int nodeNumber) {
-    final nodes = List<int>.generate(nodeNumber, (i) => i + 1)
-        .map((i) => IntegerNode(i))
-        .toList();
-
-    final edges = <Edge>{};
-    for (int i = 0; i < nodeNumber; i++) {
-      for (int j = 0; j < nodeNumber; j++) {
-        if (i != j) {
-          edges.add(Edge(left: nodes[i], right: nodes[j]));
-        }
-      }
-    }
-
-    return Graph.fromEdgeList(edges);
-  }
+  var _selectedDemoIndex = 0;
 
   Widget _displayDemo() {
-    switch (_selectedGraph) {
-      case _DemoGraphs.K8:
+    switch (_selectedDemoIndex) {
+      case 0:
         return InteractiveGraph(
-          layoutAlgorithm: _constructAlgorithm(
-            _selectedAlgorithm,
-            _generateCompleteGraph(8),
+          layoutAlgorithm: Eades(
+            graph: _generateCompleteGraph(8),
           ),
         );
 
-      case _DemoGraphs.jean:
+      case 1:
         return FutureBuilder<String>(
           future: DefaultAssetBundle.of(context).loadString('assets/jean.dat'),
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -111,9 +87,8 @@ class _ExampleAppState extends State<ExampleApp> {
                 }
               }
               return InteractiveGraph(
-                layoutAlgorithm: _constructAlgorithm(
-                  _selectedAlgorithm,
-                  Graph.fromEdgeList(edges),
+                layoutAlgorithm: Eades(
+                  graph: Graph.fromEdgeList(edges),
                 ),
                 backgroundColour: Colors.blueGrey.shade50,
                 edgeColour: Colors.blueGrey,
@@ -151,6 +126,8 @@ class _ExampleAppState extends State<ExampleApp> {
             }
           },
         );
+      default:
+        throw ArgumentError.value(_selectedDemoIndex, '_selectedDemoIndex');
     }
   }
 
@@ -161,35 +138,21 @@ class _ExampleAppState extends State<ExampleApp> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // A dropdown menu which selects the demo graph to display.
+            // A dropdown menu which selects the demo to display.
             DropdownButton(
-              value: _selectedGraph,
+              value: _selectedDemoIndex,
               onChanged: (value) {
                 setState(() {
-                  _selectedGraph = value!;
+                  _selectedDemoIndex = value!;
                 });
               },
-              items: _DemoGraphs.values
-                  .map((demoId) => DropdownMenuItem(
-                        value: demoId,
-                        child: Text(demoNames[demoId]!),
-                      ))
-                  .toList(),
-            ),
-            // A dropdown menu which selects the algorithm to use in the demo.
-            DropdownButton(
-              value: _selectedAlgorithm,
-              onChanged: (value) {
-                setState(() {
-                  _selectedAlgorithm = value!;
-                });
-              },
-              items: List.generate(_algorithmNames.length, (i) => i)
-                  .map((algorithmIndex) => DropdownMenuItem(
-                        value: algorithmIndex,
-                        child: Text(_algorithmNames[algorithmIndex]),
-                      ))
-                  .toList(),
+              items: List.generate(
+                _demoNames.length,
+                (i) => DropdownMenuItem(
+                  value: i,
+                  child: Text(_demoNames[i]),
+                ),
+              ),
             ),
             // The graph demo itself.
             _displayDemo(),
