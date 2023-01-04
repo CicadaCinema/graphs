@@ -6,7 +6,9 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 
 const _demoNames = [
   'Complete graph on 8 vertices, Eades algorithm',
+  'Complete graph on 8 vertices, Fruchterman-Reingold algorithm',
   'Character co-occurrences in Les Misérables, Eades algorithm',
+  'Character co-occurrences in Les Misérables, Fruchterman-Reingold algorithm',
 ];
 
 /// Returns a complete [Graph] on [nodeNumber] nodes.
@@ -49,8 +51,15 @@ class _ExampleAppState extends State<ExampleApp> {
             graph: _generateCompleteGraph(8),
           ),
         );
-
       case 1:
+        return StaticGraph(
+          layoutAlgorithm: FruchtermanReingold(
+            graph: _generateCompleteGraph(8),
+          ),
+        );
+
+      case 2:
+      case 3:
         return FutureBuilder<String>(
           future: DefaultAssetBundle.of(context).loadString('assets/jean.dat'),
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -86,41 +95,49 @@ class _ExampleAppState extends State<ExampleApp> {
                   }
                 }
               }
-              return InteractiveGraph(
-                layoutAlgorithm: Eades(
-                  graph: Graph.fromEdgeList(edges),
-                ),
-                themePreferences: GraphThemePreferences(
-                  backgroundColour: Colors.blueGrey.shade50,
-                  edgeColour: Colors.blueGrey,
-                  edgeThickness: 0.2,
-                  nodeRadius: 15,
-                  drawNode: (Canvas canvas, Node node, Vector2 position) {
-                    // See jean_node_data.dart for the source of this colour map.
-                    final nodePaint = Paint()..color = nodeToColour[node]!;
-                    final nodeOffset = Offset(position.x, position.y);
-                    canvas.drawCircle(nodeOffset, 15, nodePaint);
+              final theme = GraphThemePreferences(
+                backgroundColour: Colors.blueGrey.shade50,
+                edgeColour: Colors.blueGrey,
+                edgeThickness: 0.2,
+                nodeRadius: 15,
+                drawNode: (Canvas canvas, Node node, Vector2 position) {
+                  // See jean_node_data.dart for the source of this colour map.
+                  final nodePaint = Paint()..color = nodeToColour[node]!;
+                  final nodeOffset = Offset(position.x, position.y);
+                  canvas.drawCircle(nodeOffset, 15, nodePaint);
 
-                    // Draw the character label. See jean_node_data.dart for the
-                    // source of this data.
-                    final textSpan = TextSpan(
-                      text: nodeToName[node]!,
-                      style: const TextStyle(color: Colors.black),
-                    );
-                    final textPainter = TextPainter(
-                      text: textSpan,
-                      textDirection: TextDirection.ltr,
-                    );
-                    textPainter.layout();
-                    textPainter.paint(
-                      canvas,
-                      nodeOffset - const Offset(7.5, 10),
-                    );
-                    // TODO: Eventually we will have to call `textPainter.dispose()` here.
-                    // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
-                  },
-                ),
+                  // Draw the character label. See jean_node_data.dart for the
+                  // source of this data.
+                  final textSpan = TextSpan(
+                    text: nodeToName[node]!,
+                    style: const TextStyle(color: Colors.black),
+                  );
+                  final textPainter = TextPainter(
+                    text: textSpan,
+                    textDirection: TextDirection.ltr,
+                  );
+                  textPainter.layout();
+                  textPainter.paint(
+                    canvas,
+                    nodeOffset - const Offset(7.5, 10),
+                  );
+                  // TODO: Eventually we will have to call `textPainter.dispose()` here.
+                  // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
+                },
               );
+              return _selectedDemoIndex == 2
+                  ? InteractiveGraph(
+                      layoutAlgorithm: Eades(
+                        graph: Graph.fromEdgeList(edges),
+                      ),
+                      themePreferences: theme,
+                    )
+                  : StaticGraph(
+                      layoutAlgorithm: FruchtermanReingold(
+                        graph: Graph.fromEdgeList(edges),
+                      ),
+                      themePreferences: theme,
+                    );
             } else if (snapshot.hasError) {
               return const Center(child: Text('Error fetching graph data'));
             } else {
@@ -128,6 +145,7 @@ class _ExampleAppState extends State<ExampleApp> {
             }
           },
         );
+
       default:
         throw ArgumentError.value(_selectedDemoIndex, '_selectedDemoIndex');
     }

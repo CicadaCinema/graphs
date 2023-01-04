@@ -1,3 +1,4 @@
 ## Next
 
-* Add widget `InteractiveGraph` for displaying interactive graphs using any suitable layout algorithm.
+* Add widget `StaticGraph` and `InteractiveGraph` for displaying static and interactive graphs using 
+  any suitable layout algorithm.

@@ -2,14 +2,18 @@ import 'dart:math';
 
 import 'package:vector_math/vector_math.dart';
 
-import 'layout_algorithms.dart';
+import '../layout_algorithms.dart';
 
-class FruchtermanReingold extends InteractiveLayoutAlgorithm {
+class FruchtermanReingold extends StaticLayoutAlgorithm {
   /// The current temperature.
   ///
   /// For each iteration, the position of each node changes by a vector with
   /// magnitude at most [t].
   double t;
+
+  final double tInitial;
+
+  final int maxIterations;
 
   final double C;
 
@@ -30,7 +34,8 @@ class FruchtermanReingold extends InteractiveLayoutAlgorithm {
     // TODO: Tune these constants.
     this.C = 0.5,
     this.tDecay = 0.99,
-    double tInitial = 300.0,
+    this.tInitial = 300.0,
+    this.maxIterations = 10000,
   }) : t = tInitial;
 
   @override
@@ -45,13 +50,12 @@ class FruchtermanReingold extends InteractiveLayoutAlgorithm {
       nodeRadius: nodeRadius,
     );
 
-    // This is a constant which depends both on the layout area and the node number.
+    // This is a constant which depends on both the layout area and the node number.
     k = C *
         sqrt((layoutDimensions.x * layoutDimensions.y) /
             graph.adjacencyList.keys.length);
   }
 
-  @override
   bool iterate() {
     // Initially assume this layout is stable.
     var isStable = true;
@@ -96,5 +100,16 @@ class FruchtermanReingold extends InteractiveLayoutAlgorithm {
     t *= tDecay;
 
     return isStable;
+  }
+
+  @override
+  void computeLayout() {
+    t = tInitial;
+
+    var iterationCount = 0;
+
+    while (t > 0.01 && iterationCount++ < maxIterations) {
+      iterate();
+    }
   }
 }
