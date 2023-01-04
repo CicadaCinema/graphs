@@ -8,6 +8,9 @@ import 'package:graph_layout/graph_layout.dart';
 import 'package:vector_math/vector_math.dart';
 
 import 'src/common.dart';
+import 'src/graph_theme.dart';
+
+export 'src/graph_theme.dart';
 
 // TODO: Provide a description of the interactive elements of this widget.
 /// A widget providing an interactive visualisation of a graph, using the
@@ -17,33 +20,17 @@ import 'src/common.dart';
 class InteractiveGraph extends StatefulWidget {
   final InteractiveLayoutAlgorithm layoutAlgorithm;
 
-  final void Function(Canvas, Size)? drawBackground;
-  final void Function(Canvas, Edge, Vector2, Vector2)? drawEdge;
-  final void Function(Canvas, Node, Vector2)? drawNode;
-
   /// The period of time, in milliseconds, between successive iterations of the
   /// spring layout algorithm.
   final int intervalTime;
 
-  final double edgeThickness;
-  final double nodeRadius;
-
-  final Color? backgroundColour;
-  final Color? edgeColour;
-  final Color? nodeColour;
+  final GraphThemePreferences themePreferences;
 
   const InteractiveGraph({
     Key? key,
     required this.layoutAlgorithm,
     this.intervalTime = 16,
-    this.edgeThickness = 1,
-    this.nodeRadius = 10,
-    this.backgroundColour,
-    this.edgeColour,
-    this.nodeColour,
-    this.drawBackground,
-    this.drawEdge,
-    this.drawNode,
+    this.themePreferences = const GraphThemePreferences(),
   }) : super(key: key);
 
   @override
@@ -61,44 +48,10 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   late Vector2 _layoutDimensions;
 
-  late final Vector2 _nodeRadiusRestriction = Vector2.all(widget.nodeRadius);
+  late final Vector2 _nodeRadiusRestriction =
+      Vector2.all(widget.themePreferences.nodeRadius);
 
   late final Timer _iterationTimer;
-
-  // Default methods for drawing the background, edges and nodes with theme-
-  // aware colours.
-  late final _backgroundPaint = Paint()
-    ..color =
-        widget.backgroundColour ?? Theme.of(context).colorScheme.background;
-  late final _edgePaint = Paint()
-    ..strokeWidth = widget.edgeThickness
-    ..color = widget.edgeColour ??
-        Theme.of(context).colorScheme.primary.withOpacity(0.25)
-    ..style = PaintingStyle.stroke;
-  late final _nodePaint = Paint()
-    ..color = widget.nodeColour ?? Theme.of(context).colorScheme.primary;
-
-  late final drawBackground = widget.drawBackground ??
-      (Canvas canvas, Size size) {
-        // A unit square serves as a background.
-        canvas.drawRect(
-          Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
-          _backgroundPaint,
-        );
-      };
-  late final drawEdge = widget.drawEdge ??
-      (Canvas canvas, Edge edge, Vector2 leftPosition, Vector2 rightPosition) {
-        canvas.drawPath(
-            Path()
-              ..moveTo(leftPosition.x, leftPosition.y)
-              ..lineTo(rightPosition.x, rightPosition.y)
-              ..close(),
-            _edgePaint);
-      };
-  late final drawNode = widget.drawNode ??
-      (Canvas canvas, Node node, Vector2 position) {
-        canvas.drawCircle(position.toOffset(), widget.nodeRadius, _nodePaint);
-      };
 
   @override
   initState() {
@@ -139,7 +92,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
               widget.layoutAlgorithm.nodeLayout.closest(panPosition);
           if (panPosition
                   .distanceTo(widget.layoutAlgorithm.nodeLayout[closestNode]!) <
-              widget.nodeRadius) {
+              widget.themePreferences.nodeRadius) {
             widget.layoutAlgorithm.constrainedNodes.toggle(closestNode);
           }
         },
@@ -151,7 +104,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
               widget.layoutAlgorithm.nodeLayout.closest(panPosition);
           if (panPosition
                   .distanceTo(widget.layoutAlgorithm.nodeLayout[closestNode]!) <
-              widget.nodeRadius) {
+              widget.themePreferences.nodeRadius) {
             _draggedNode = closestNode;
             _draggedNodeWasConstrained =
                 !widget.layoutAlgorithm.constrainedNodes.add(closestNode);
@@ -187,16 +140,17 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             widget.layoutAlgorithm.updateLayoutParameters(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
-              nodeRadius: widget.nodeRadius,
+              nodeRadius: widget.themePreferences.nodeRadius,
             );
 
             return CustomPaint(
               painter: _GraphPainter(
                 edgeList: widget.layoutAlgorithm.graph.edgeList,
                 nodes: widget.layoutAlgorithm.nodeLayout,
-                drawBackground: drawBackground,
-                drawEdge: drawEdge,
-                drawNode: drawNode,
+                graphTheme: GraphTheme(
+                  defaultColorScheme: Theme.of(context).colorScheme,
+                  partialGraphTheme: widget.themePreferences,
+                ),
               ),
               size: Size.infinite,
             );
@@ -211,30 +165,26 @@ class _GraphPainter extends CustomPainter {
   final EdgeList edgeList;
   final NodeLayout nodes;
 
-  final void Function(Canvas, Size) drawBackground;
-  final void Function(Canvas, Edge, Vector2, Vector2) drawEdge;
-  final void Function(Canvas, Node, Vector2) drawNode;
+  final GraphTheme graphTheme;
 
   _GraphPainter({
     required this.edgeList,
     required this.nodes,
-    required this.drawBackground,
-    required this.drawEdge,
-    required this.drawNode,
+    required this.graphTheme,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    drawBackground(canvas, size);
+    graphTheme.drawBackground(canvas, size);
 
     // Draw the graph edges according to the computed layout.
     for (final edge in edgeList) {
-      drawEdge(canvas, edge, nodes[edge.left]!, nodes[edge.right]!);
+      graphTheme.drawEdge(canvas, edge, nodes[edge.left]!, nodes[edge.right]!);
     }
 
     // Draw each of the nodes, so that they overlap the edges.
     for (final nodeEntry in nodes.entries) {
-      drawNode(canvas, nodeEntry.key, nodeEntry.value);
+      graphTheme.drawNode(canvas, nodeEntry.key, nodeEntry.value);
     }
   }
 

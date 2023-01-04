@@ -90,34 +90,36 @@ class _ExampleAppState extends State<ExampleApp> {
                 layoutAlgorithm: Eades(
                   graph: Graph.fromEdgeList(edges),
                 ),
-                backgroundColour: Colors.blueGrey.shade50,
-                edgeColour: Colors.blueGrey,
-                edgeThickness: 0.2,
-                nodeRadius: 15,
-                drawNode: (Canvas canvas, Node node, Vector2 position) {
-                  // See jean_node_data.dart for the source of this colour map.
-                  final nodePaint = Paint()..color = nodeToColour[node]!;
-                  final nodeOffset = Offset(position.x, position.y);
-                  canvas.drawCircle(nodeOffset, 15, nodePaint);
+                themePreferences: GraphThemePreferences(
+                  backgroundColour: Colors.blueGrey.shade50,
+                  edgeColour: Colors.blueGrey,
+                  edgeThickness: 0.2,
+                  nodeRadius: 15,
+                  drawNode: (Canvas canvas, Node node, Vector2 position) {
+                    // See jean_node_data.dart for the source of this colour map.
+                    final nodePaint = Paint()..color = nodeToColour[node]!;
+                    final nodeOffset = Offset(position.x, position.y);
+                    canvas.drawCircle(nodeOffset, 15, nodePaint);
 
-                  // Draw the character label. See jean_node_data.dart for the
-                  // source of this data.
-                  final textSpan = TextSpan(
-                    text: nodeToName[node]!,
-                    style: const TextStyle(color: Colors.black),
-                  );
-                  final textPainter = TextPainter(
-                    text: textSpan,
-                    textDirection: TextDirection.ltr,
-                  );
-                  textPainter.layout();
-                  textPainter.paint(
-                    canvas,
-                    nodeOffset - const Offset(7.5, 10),
-                  );
-                  // TODO: Eventually we will have to call `textPainter.dispose()` here.
-                  // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
-                },
+                    // Draw the character label. See jean_node_data.dart for the
+                    // source of this data.
+                    final textSpan = TextSpan(
+                      text: nodeToName[node]!,
+                      style: const TextStyle(color: Colors.black),
+                    );
+                    final textPainter = TextPainter(
+                      text: textSpan,
+                      textDirection: TextDirection.ltr,
+                    );
+                    textPainter.layout();
+                    textPainter.paint(
+                      canvas,
+                      nodeOffset - const Offset(7.5, 10),
+                    );
+                    // TODO: Eventually we will have to call `textPainter.dispose()` here.
+                    // See https://github.com/flutter/flutter/blob/0b451b6dfd6de73ff89d89081c33d0f971db1872/packages/flutter/lib/src/painting/text_painter.dart#L171 .
+                  },
+                ),
               );
             } else if (snapshot.hasError) {
               return const Center(child: Text('Error fetching graph data'));
