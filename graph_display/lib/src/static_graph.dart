@@ -1,4 +1,5 @@
 import 'package:async/async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:graph_layout/graph_layout.dart';
 
@@ -23,6 +24,7 @@ class StaticGraph extends StatefulWidget {
 
 class _StaticGraphState extends State<StaticGraph> {
   late RestartableTimer _redrawTimer;
+  late StaticLayoutAlgorithm _algorithm = widget.layoutAlgorithm;
 
   double? _previousWidth;
   double? _previousHeight;
@@ -34,10 +36,11 @@ class _StaticGraphState extends State<StaticGraph> {
     // to [widget.layoutAlgorithm.updateLayoutParameters].
     _redrawTimer = RestartableTimer(
       widget.resizeBufferDuration,
-      () {
-        setState(() {
-          // TODO: compute this in an isolate or a web worker, depending on platform
-          widget.layoutAlgorithm.computeLayout();
+      () async {
+        compute(_computeLayout, _algorithm).then((StaticLayoutAlgorithm value) {
+          setState(() {
+            _algorithm = value;
+          });
         });
       },
     );
@@ -58,7 +61,7 @@ class _StaticGraphState extends State<StaticGraph> {
           // The widget has been resized.
           if (constraints.maxWidth != _previousWidth ||
               constraints.maxHeight != _previousHeight) {
-            widget.layoutAlgorithm.updateLayoutParameters(
+            _algorithm.updateLayoutParameters(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
               nodeRadius: widget.themePreferences.nodeRadius,
@@ -72,8 +75,8 @@ class _StaticGraphState extends State<StaticGraph> {
 
           return CustomPaint(
             painter: GraphPainter(
-              edgeList: widget.layoutAlgorithm.graph.edgeList,
-              nodes: widget.layoutAlgorithm.nodeLayout,
+              edgeList: _algorithm.graph.edgeList,
+              nodes: _algorithm.nodeLayout,
               graphTheme: GraphTheme(
                 defaultColorScheme: Theme.of(context).colorScheme,
                 partialGraphTheme: widget.themePreferences,
@@ -85,4 +88,12 @@ class _StaticGraphState extends State<StaticGraph> {
       ),
     );
   }
+}
+
+/// Given a static layout [algorithm], runs [algorithm.computeLayout] and returns the mutated [algorithm] object.
+///
+/// This function is used only in calls to [compute] from [flutter/foundation.dart], so being a little wasteful in terms of memory is OK in this case.
+StaticLayoutAlgorithm _computeLayout(StaticLayoutAlgorithm algorithm) {
+  algorithm.computeLayout();
+  return algorithm;
 }
