@@ -9,24 +9,28 @@ import 'common.dart';
 import 'graph_painter.dart';
 import 'graph_theme.dart';
 
-// TODO: Provide a description of the interactive elements of this widget.
-/// A widget providing an interactive visualisation of a graph, using the
-/// Eades layout algorithm.
+/// A widget providing an interactive visualisation of a graph, given any
+/// [InteractiveLayoutAlgorithm] to compute the layout.
+///
+/// Nodes can be dragged to move them, and tapped to freeze their position.
+/// [layoutAlgorithm.iterate] is called with a period of [iterationInterval].
 ///
 /// This widget must be a child of `Row`, `Column`, or `Flex`.
+/// For displaying a graph that the user cannot interact with,
+/// consider using [StaticGraph].
 class InteractiveGraph extends StatefulWidget {
   final InteractiveLayoutAlgorithm layoutAlgorithm;
 
-  /// The period of time, in milliseconds, between successive iterations of the
-  /// spring layout algorithm.
-  final int intervalTime;
+  /// The duration between successive iterations of the interactive layout
+  /// algorithm (calls to [layoutAlgorithm.iterate]).
+  final Duration iterationInterval;
 
   final GraphThemePreferences themePreferences;
 
   const InteractiveGraph({
     Key? key,
     required this.layoutAlgorithm,
-    this.intervalTime = 16,
+    this.iterationInterval = const Duration(milliseconds: 16),
     this.themePreferences = const GraphThemePreferences(),
   }) : super(key: key);
 
@@ -57,7 +61,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     // Start a periodic timer which will iterate on the layout according to the
     // spring algorithm every intervalTime milliseconds.
     _iterationTimer =
-        Timer.periodic(Duration(milliseconds: widget.intervalTime), (timer) {
+        Timer.periodic(widget.iterationInterval, (timer) {
       // Time how long each iteration takes and print it to the debug console.
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       _benchmarkStopwatch.start();

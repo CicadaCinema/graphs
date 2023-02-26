@@ -6,16 +6,26 @@ import 'package:graph_layout/graph_layout.dart';
 import 'graph_painter.dart';
 import 'graph_theme.dart';
 
+/// A widget providing a static, non-interactive visualisation of a graph,
+/// given any [StaticLayoutAlgorithm] to compute the layout.
+///
+/// [layoutAlgorithm.computeLayout] is called once, when the widget is first
+/// built, and a duration of [resizeBufferPeriod] after the constraints imposed
+/// on the widget are changed (this typically happens when the app is resized).
+///
+/// This widget must be a child of `Row`, `Column`, or `Flex`.
+/// For displaying a graph that the user can interact with, consider using
+/// [InteractiveGraph].
 class StaticGraph extends StatefulWidget {
   final StaticLayoutAlgorithm layoutAlgorithm;
   final GraphThemePreferences themePreferences;
-  final Duration resizeBufferDuration;
+  final Duration resizeBufferPeriod;
 
   const StaticGraph({
     Key? key,
     required this.layoutAlgorithm,
     this.themePreferences = const GraphThemePreferences(),
-    this.resizeBufferDuration = const Duration(milliseconds: 100),
+    this.resizeBufferPeriod = const Duration(milliseconds: 100),
   }) : super(key: key);
 
   @override
@@ -35,7 +45,7 @@ class _StaticGraphState extends State<StaticGraph> {
     // Initially cancel the timer, so that it can only be triggered after a call
     // to [widget.layoutAlgorithm.updateLayoutParameters].
     _redrawTimer = RestartableTimer(
-      widget.resizeBufferDuration,
+      widget.resizeBufferPeriod,
       () async {
         compute(_computeLayout, _algorithm).then((StaticLayoutAlgorithm value) {
           setState(() {
