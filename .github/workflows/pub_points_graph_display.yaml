@@ -26,5 +26,5 @@ jobs:
         run: dart pub global activate pana
 
       - name: Run pana
-        run: dart pub global run pana --no-warning --exit-code-threshold 0 graph_display
+        run: export PATH="$PATH:`which flutter | xargs dirname`" && dart pub global run pana --no-warning --exit-code-threshold 0 graph_display
 
