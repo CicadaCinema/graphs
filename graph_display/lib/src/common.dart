@@ -14,12 +14,12 @@ extension Vector2ToOffset on Vector2 {
 extension ClosestNode on NodeLayout {
   /// Returns the closest [Node] to the given [Vector2].
   Node closest(Vector2 position) => keys.reduce((a, b) {
-    if (position.distanceTo(this[a]!) < position.distanceTo(this[b]!)) {
-      return a;
-    } else {
-      return b;
-    }
-  });
+        if (position.distanceTo(this[a]!) < position.distanceTo(this[b]!)) {
+          return a;
+        } else {
+          return b;
+        }
+      });
 }
 
 // TODO: See https://github.com/google/vector_math.dart/issues/189 .

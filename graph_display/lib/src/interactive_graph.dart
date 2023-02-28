@@ -60,8 +60,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
     // Start a periodic timer which will iterate on the layout according to the
     // spring algorithm every intervalTime milliseconds.
-    _iterationTimer =
-        Timer.periodic(widget.iterationInterval, (timer) {
+    _iterationTimer = Timer.periodic(widget.iterationInterval, (timer) {
       // Time how long each iteration takes and print it to the debug console.
       // TODO: Perform benchmarks, store the results in repo, then remove this code.
       _benchmarkStopwatch.start();

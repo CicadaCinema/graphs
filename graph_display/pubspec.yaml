@@ -1,5 +1,5 @@
 name: graph_display
-description: A package for displaying graph structures in Flutter.
+description: A package providing widgets for displaying graph structures in Flutter.
 version: 0.0.1
 homepage: https://github.com/CicadaCinema/graphs/tree/master/graph_display
 repository: https://github.com/CicadaCinema/graphs
