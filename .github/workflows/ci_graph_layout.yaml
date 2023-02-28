@@ -1,6 +1,6 @@
 # Reference: https://medium.com/dartlang/announcing-dart-support-for-github-actions-3d892642104
 
-name: Dart
+name: CI for graph_layout
 
 on:
   push:
