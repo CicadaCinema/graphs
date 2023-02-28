@@ -1,6 +1,8 @@
 # graphs
 
-This reposiory is home to my graph visualisation library.
+![image](https://user-images.githubusercontent.com/52425971/221881595-36d57571-e5fd-4860-8b66-0838ba450523.png)
+
+This reposiory is home to my graph visualisation libraries.
 
 If you are using Flutter and want an easy-to-use widget API to display graphs in your app, use [graph_display](./graph_display).
 
