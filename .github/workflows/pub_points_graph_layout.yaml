@@ -1,0 +1,22 @@
+name: Calculate pub points for graph_layout
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1.3
+
+      - name: Activate pana
+        run: dart pub global activate pana
+
+      - name: Run pana
+        run: dart pub global run pana --no-warning --exit-code-threshold 0 graph_layout
+
