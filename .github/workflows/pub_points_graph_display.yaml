@@ -16,6 +16,12 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Identify if Flutter is available
+        run: which flutter | xargs dirname
+
+      - name: Add Flutter to PATH
+        run: export PATH="$PATH:`which flutter | xargs dirname`"
+
       - name: Activate pana
         run: dart pub global activate pana
 
