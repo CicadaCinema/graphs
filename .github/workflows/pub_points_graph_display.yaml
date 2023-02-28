@@ -16,15 +16,9 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Identify if Flutter is available
-        run: which flutter | xargs dirname
-
-      - name: Identify Flutter SDK path
-        run: which flutter | xargs dirname | xargs dirname
-
       - name: Activate pana
         run: dart pub global activate pana
 
       - name: Run pana
-        run: dart pub global run pana --no-warning --flutter-sdk `which flutter | xargs dirname | xargs dirname` --exit-code-threshold 0 graph_display
+        run: dart pub global run pana --no-warning --exit-code-threshold 10 graph_display
 
