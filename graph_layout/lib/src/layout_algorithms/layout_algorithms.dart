@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:meta/meta.dart';
 import 'package:vector_math/vector_math.dart';
 
 import '../../graph_layout.dart';
@@ -33,7 +34,7 @@ abstract class StaticLayoutAlgorithm {
     }
   }
 
-  /// Update (or initialise) the graph layout area and the radius of each node.
+  /// Specify the graph layout area and the radius of each node.
   ///
   /// The layout algorithm must be aware of the node radius so that it does not
   /// produce a layout where some part of a node lies outside the node area
@@ -63,6 +64,7 @@ abstract class StaticLayoutAlgorithm {
   /// ensures that the position of any two nodes is never clamped to the
   /// same point. Otherwise, groups of nodes may get 'stuck' at a corner
   /// of the layout area, even after the area is expanded.
+  @protected
   void clampNodeVector(Vector2 nodePosition) {
     nodePosition.clamp(
       Vector2.all(nodeRadius) + Vector2.random(),
@@ -73,7 +75,6 @@ abstract class StaticLayoutAlgorithm {
   void computeLayout();
 }
 
-// TODO: Consider using @protected to prevent fields of this class from being used outside its subclasses.
 // See: https://api.flutter.dev/flutter/meta/protected-constant.html .
 /// A generic interactive graph layout algorithm.
 abstract class InteractiveLayoutAlgorithm extends StaticLayoutAlgorithm {
@@ -86,12 +87,15 @@ abstract class InteractiveLayoutAlgorithm extends StaticLayoutAlgorithm {
   ///
   /// Returns `true` if running one iteration does not change the position of
   /// each node by much in each axis.
+  @protected
   bool iterate();
 
   /// Repeatedly run [iterate] until a stable layout is obtained.
   ///
   /// This method is not guaranteed to terminate; be careful when using it on
-  /// complex graphs.
+  /// complex graphs. Subclasses of [InteractiveLayoutAlgorithm] are expected
+  /// to override this method, providing their own implementation which must
+  /// always terminate.
   @override
   void computeLayout() {
     while (!iterate()) {}

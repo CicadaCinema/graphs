@@ -4,6 +4,7 @@ import 'package:vector_math/vector_math.dart';
 
 import '../layout_algorithms.dart';
 
+/// An implementation of the Fruchterman-Reingold layout algorithm.
 class FruchtermanReingold extends StaticLayoutAlgorithm {
   /// The current temperature.
   ///

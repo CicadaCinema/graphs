@@ -10,6 +10,7 @@ environment:
 dependencies:
   vector_math: ^2.1.2
   quiver: ^3.1.0
+  meta: ^1.8.0
 
 dev_dependencies:
   lints: ^2.0.0
