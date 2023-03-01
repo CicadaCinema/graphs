@@ -87,7 +87,6 @@ abstract class InteractiveLayoutAlgorithm extends StaticLayoutAlgorithm {
   ///
   /// Returns `true` if running one iteration does not change the position of
   /// each node by much in each axis.
-  @protected
   bool iterate();
 
   /// Repeatedly run [iterate] until a stable layout is obtained.
