@@ -4,8 +4,9 @@ import 'package:vector_math/vector_math.dart';
 
 import 'common.dart';
 
-/// Theme preferences for drawing a graph. This class contains no logic; it
-/// simply encapsulates related fields.
+/// Theme preferences for drawing a graph.
+///
+/// This is a data class, it contains no methods.
 class GraphThemePreferences {
   final void Function(Canvas, Size)? drawBackground;
   final void Function(Canvas, Edge, Vector2, Vector2)? drawEdge;

@@ -44,14 +44,15 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.1.0"
   graph_layout:
     dependency: "direct main"
     description:
-      path: "../../graph_layout"
-      relative: true
-    source: path
-    version: "0.0.1"
+      name: graph_layout
+      sha256: "080be3d75fed9325f6cc5255e14f75f6cff4b4f576a651b30353a202313c798b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   js:
     dependency: transitive
     description:

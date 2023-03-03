@@ -1,6 +1,6 @@
 name: graph_layout
 description: A package providing graph layout algorithms and related data structures.
-version: 0.0.1
+version: 0.1.0
 homepage: https://github.com/CicadaCinema/graphs/tree/master/graph_layout
 repository: https://github.com/CicadaCinema/graphs
 
