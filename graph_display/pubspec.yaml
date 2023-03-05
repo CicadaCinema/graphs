@@ -1,8 +1,12 @@
 name: graph_display
 description: A package providing widgets for displaying graph structures in Flutter.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/CicadaCinema/graphs/tree/master/graph_display
 repository: https://github.com/CicadaCinema/graphs
+
+screenshots:
+ - description: 'Example of an aesthetically pleasing graph layout (node labels and colours are hard-coded).'
+   path: example/screenshots/jean_demo.png
 
 environment:
   sdk: '>=2.18.6 <3.0.0'
