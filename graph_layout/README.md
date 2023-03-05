@@ -1,5 +1,9 @@
 # graph_layout
 
+https://pub.dev/packages/graph_layout
+
+[![pub package](https://img.shields.io/pub/v/graph_layout.svg)](https://pub.dev/packages/graph_layout)
+
 This package implements a variety of [graph drawing](https://en.wikipedia.org/wiki/Graph_drawing) algorithms and exposes sensible primitives and classes for working with graphs.
 
 Specify your graph's topology and parameters such as the graph drawing area and run one of the algorithms to obtain a layout - a map of coordinate assignments for each node.

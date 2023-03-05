@@ -1,6 +1,10 @@
 # graphs
 
-![image](https://user-images.githubusercontent.com/52425971/221881595-36d57571-e5fd-4860-8b66-0838ba450523.png)
+[![pub package](https://img.shields.io/pub/v/graph_layout.svg)](https://pub.dev/packages/graph_layout)
+
+[![pub package](https://img.shields.io/pub/v/graph_display.svg)](https://pub.dev/packages/graph_display)
+
+![image](./graph_display/example/screenshots/jean_demo.png)
 
 This reposiory is home to my graph visualisation libraries.
 

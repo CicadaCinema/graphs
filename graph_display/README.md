@@ -1,5 +1,9 @@
 # graph_display
 
+https://pub.dev/packages/graph_display
+
+[![pub package](https://img.shields.io/pub/v/graph_display.svg)](https://pub.dev/packages/graph_display)
+
 This package exposes widgets for displaying graphs in Flutter in a customisable way.
 
 If you are not using Flutter, or you require a more specific graph widget, use [graph_layout](../graph_layout) instead to generate graph layouts, and write your own code for displaying these on the screen.
