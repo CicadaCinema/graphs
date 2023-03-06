@@ -20,5 +20,7 @@ jobs:
         run: dart pub global activate pana
 
       - name: Run pana
-        run: dart pub global run pana --no-warning --exit-code-threshold 10 graph_display
-
+        # We lose 20 points because pana does not play well with GitHub Actions:
+        # - 10 are lost to `Unable to detect Flutter version.`
+        # - 10 are lost to issues with processing the example screenshot
+        run: dart pub global run pana --no-warning --exit-code-threshold 20 graph_display
