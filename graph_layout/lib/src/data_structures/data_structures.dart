@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:quiver/core.dart';
 
 import 'typedefs.dart';
+import 'unmodifiable.dart';
 
 /// A node of a graph.
 ///
@@ -56,12 +57,6 @@ class Edge {
           (left == other.right && right == other.left));
 }
 
-AdjacencyList _unmodifiableAdjacencyList(AdjacencyList adjacencyList) =>
-    Map.unmodifiable(adjacencyList
-        .map((key, value) => MapEntry(key, Set.unmodifiable(value))));
-
-EdgeList _unmodifiableEdgeList(EdgeList edgeList) => Set.unmodifiable(edgeList);
-
 /// The topology of a graph.
 ///
 /// Use the various members of this class to access different representations
@@ -82,7 +77,7 @@ class Graph {
   /// Create a [Graph] using its adjacency list.
   Graph.fromAdjacencyList(AdjacencyList adjacencyList) {
     // TODO: Assert that this is a valid adjacency list? - ie adjacencyList[a] contains b <=> adjacencyList[b] contains a
-    this.adjacencyList = _unmodifiableAdjacencyList(adjacencyList);
+    this.adjacencyList = unmodifiableAdjacencyList(adjacencyList);
 
     // Populate this.edgeList by iterating over all the members of the Set
     // adjacencyList.values . Note that this means we see each edge twice, but
@@ -92,7 +87,7 @@ class Graph {
       edges.addAll(adjacencyEntry.value.map(
           (rightNode) => Edge(left: adjacencyEntry.key, right: rightNode)));
     }
-    edgeList = _unmodifiableEdgeList(edges);
+    edgeList = unmodifiableEdgeList(edges);
   }
 
   /// Create a [Graph] using a [String] format of its adjacency list.
@@ -128,7 +123,7 @@ class Graph {
   /// Create a [Graph] using its edge list.
   Graph.fromEdgeList(EdgeList edgeList) {
     // TODO: assert that this is a valid edge list? - ie no edge loops are present
-    this.edgeList = _unmodifiableEdgeList(edgeList);
+    this.edgeList = unmodifiableEdgeList(edgeList);
 
     // Populate this.adjacencyList by adding data to adjacencies[edge.left] and
     // adjacencies[edge.right], for every edge.
@@ -147,7 +142,7 @@ class Graph {
       }
     }
 
-    adjacencyList = _unmodifiableAdjacencyList(adjacencies);
+    adjacencyList = unmodifiableAdjacencyList(adjacencies);
   }
 
   /// Create a [Graph] using a [String] format of its edge list.
