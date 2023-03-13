@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:quiver/core.dart';
 
 import 'typedefs.dart';
-import 'unmodifiable.dart';
+import 'unmodifiable_helpers.dart';
 
 /// A node of a graph.
 ///
