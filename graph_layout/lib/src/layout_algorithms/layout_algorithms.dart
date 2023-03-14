@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 import 'package:vector_math/vector_math.dart';
 
 import '../../graph_layout.dart';
-import '../data_structures/typedefs.dart';
 
 /// A generic static graph layout algorithm.
 abstract class StaticLayoutAlgorithm {
