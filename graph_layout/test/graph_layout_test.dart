@@ -1,4 +1,5 @@
 import 'package:graph_layout/graph_layout.dart';
+import 'package:graph_layout/src/data_structures/validation.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -151,6 +152,127 @@ void main() {
         IntegerNode(33),
         IntegerNode(44),
       );
+    });
+  });
+
+  group('validation', () {
+    late IntegerNode A;
+    late IntegerNode B;
+    late IntegerNode C;
+    late IntegerNode D;
+
+    setUp(() {
+      A = IntegerNode(1);
+      B = IntegerNode(2);
+      C = IntegerNode(3);
+      D = IntegerNode(4);
+    });
+
+    test('Adjacency list for an undirected graph', () {
+      final AdjacencyList squareProper = {
+        A: {B, D},
+        B: {C, A},
+        C: {D, B},
+        D: {A, C},
+      };
+      final AdjacencyList squareIncompleteValue = {
+        A: {B},
+        B: {C, A},
+        C: {D, B},
+        D: {A, C},
+      };
+      final AdjacencyList squareMissingKey = {
+        B: {C},
+        C: {D, B},
+        D: {A, C},
+      };
+      final AdjacencyList empty = {};
+
+      final squareProperString = '''1 2 4
+2 3 1
+3 4 2
+4 1 3''';
+      final squareIncompleteValueString = '''1 2 4
+2 3 1
+3 2
+4 1 3''';
+
+      // Unit tests for validation function.
+      expect(
+          () => validateUndirectedAdjacencyList(squareProper), returnsNormally);
+      expect(
+        () => validateUndirectedAdjacencyList(squareIncompleteValue),
+        throwsA(
+          isFormatException
+              .having(
+                (e) => e.source,
+                'source',
+                equals(squareIncompleteValue),
+              )
+              .having(
+                (e) => e.message,
+                'message',
+                equals(
+                    '''adjacencyList[a]!.contains(b) is true, but adjacencyList[b]!.contains(a) is false,
+where a.hashCode == ${D.hashCode}
+and b.hashCode == ${A.hashCode}'''),
+              ),
+        ),
+      );
+      expect(
+        () => validateUndirectedAdjacencyList(squareMissingKey),
+        throwsA(
+          isFormatException
+              .having(
+                (e) => e.source,
+                'source',
+                equals(squareMissingKey),
+              )
+              .having(
+                (e) => e.message,
+                'message',
+                equals(
+                    '''adjacencyList[a]!.contains(b) is true, but adjacencyList[b] is null,
+where a.hashCode == ${D.hashCode}
+and b.hashCode == ${A.hashCode}'''),
+              ),
+        ),
+      );
+      expect(() => validateUndirectedAdjacencyList(empty), returnsNormally);
+
+      // Tests to ensure constructor arguments are respected (validate: true).
+      expect(() => Graph.fromAdjacencyList(squareProper), returnsNormally);
+      expect(() => Graph.fromAdjacencyList(squareIncompleteValue),
+          throwsFormatException);
+      expect(() => Graph.fromAdjacencyList(squareMissingKey),
+          throwsFormatException);
+      expect(() => Graph.fromAdjacencyList(empty), returnsNormally);
+
+      // Even invalid adjacency lists should be accepted is validation is
+      // explicitly disabled.
+      expect(() => Graph.fromAdjacencyList(squareProper, validate: false),
+          returnsNormally);
+      expect(
+          () => Graph.fromAdjacencyList(squareIncompleteValue, validate: false),
+          returnsNormally);
+      expect(() => Graph.fromAdjacencyList(squareMissingKey, validate: false),
+          returnsNormally);
+      expect(() => Graph.fromAdjacencyList(empty, validate: false),
+          returnsNormally);
+
+      // Test string constructors: validate by default; disable validation.
+      expect(() => Graph.fromAdjacencyListString(squareProperString),
+          returnsNormally);
+      expect(() => Graph.fromAdjacencyListString(squareIncompleteValueString),
+          throwsFormatException);
+      expect(
+          () => Graph.fromAdjacencyListString(squareProperString,
+              validate: false),
+          returnsNormally);
+      expect(
+          () => Graph.fromAdjacencyListString(squareIncompleteValueString,
+              validate: false),
+          returnsNormally);
     });
   });
 }

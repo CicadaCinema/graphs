@@ -4,6 +4,7 @@ import 'package:quiver/core.dart';
 
 import 'typedefs.dart';
 import 'unmodifiable_helpers.dart';
+import 'validation.dart';
 
 /// A node of a graph.
 ///
@@ -75,9 +76,19 @@ class Graph {
   // TODO: Ensure that the factory constructors are implemented correctly.
   // TODO: Characterise the running times (in big-O notation ideally) of the constructors and document them - benchmark this??
   /// Create a [Graph] using its adjacency list.
-  Graph.fromAdjacencyList(AdjacencyList adjacencyList) {
-    // TODO: Assert that this is a valid adjacency list? - ie adjacencyList[a] contains b <=> adjacencyList[b] contains a
+  ///
+  /// If [validate] is `true`, [FormatException] is thrown unless
+  /// [adjacencyList] is a valid adjacency list for an undirected graph.
+  Graph.fromAdjacencyList(
+    AdjacencyList adjacencyList, {
+    bool validate = true,
+  }) {
+    // TODO: validate lack of edge loops
     this.adjacencyList = unmodifiableAdjacencyList(adjacencyList);
+
+    if (validate) {
+      validateUndirectedAdjacencyList(adjacencyList);
+    }
 
     // Populate this.edgeList by iterating over all the members of the Set
     // adjacencyList.values . Note that this means we see each edge twice, but
@@ -96,7 +107,13 @@ class Graph {
   /// format](https://networkx.org/documentation/stable/reference/readwrite/adjlist.html#format).
   /// Here, comments or any other arbitrary data is not allowed and will result
   /// in a [FormatException].
-  factory Graph.fromAdjacencyListString(String adjacencyListString) {
+  ///
+  /// If [validate] is `true`, [FormatException] is thrown unless
+  /// [adjacencyList] is a valid adjacency list for an undirected graph.
+  factory Graph.fromAdjacencyListString(
+    String adjacencyListString, {
+    bool validate = true,
+  }) {
     final AdjacencyList adjacencyList = {};
 
     for (final line in adjacencyListString.split(RegExp(r'\r?\n'))) {
@@ -117,12 +134,15 @@ class Graph {
       adjacencyList[sourceNode] = targetNodes;
     }
 
-    return Graph.fromAdjacencyList(adjacencyList);
+    return Graph.fromAdjacencyList(
+      adjacencyList,
+      validate: validate,
+    );
   }
 
   /// Create a [Graph] using its edge list.
   Graph.fromEdgeList(EdgeList edgeList) {
-    // TODO: assert that this is a valid edge list? - ie no edge loops are present
+    // TODO: validate lack of edge loops
     this.edgeList = unmodifiableEdgeList(edgeList);
 
     // Populate this.adjacencyList by adding data to adjacencies[edge.left] and
