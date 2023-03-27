@@ -98,7 +98,7 @@ class Graph {
       edges.addAll(adjacencyEntry.value.map(
           (rightNode) => Edge(left: adjacencyEntry.key, right: rightNode)));
     }
-    edgeList = unmodifiableEdgeList(edges);
+    edgeList = Set.unmodifiable(edges);
   }
 
   /// Create a [Graph] using a [String] format of its adjacency list.
@@ -143,7 +143,7 @@ class Graph {
   /// Create a [Graph] using its edge list.
   Graph.fromEdgeList(EdgeList edgeList) {
     // TODO: validate lack of edge loops
-    this.edgeList = unmodifiableEdgeList(edgeList);
+    this.edgeList = Set.unmodifiable(edgeList);
 
     // Populate this.adjacencyList by adding data to adjacencies[edge.left] and
     // adjacencies[edge.right], for every edge.
