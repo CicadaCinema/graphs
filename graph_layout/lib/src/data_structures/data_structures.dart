@@ -33,8 +33,7 @@ class IntegerNode extends Node {
   bool operator ==(Object other) => other is IntegerNode && id == other.id;
 }
 
-// TODO: Make a class for representing a directed edge - perhaps these could share the same superclass.
-/// An _undirected_ edge of a graph.
+/// An undirected edge of a graph.
 class Edge {
   final Node left;
   final Node right;
@@ -101,6 +100,8 @@ class Graph {
     edgeList = Set.unmodifiable(edges);
   }
 
+  // TODO: extract these two String constructors into their own helper functions,
+  // and add two lightweight wrappers to the DirectedGraph class
   /// Create a [Graph] using a [String] format of its adjacency list.
   ///
   /// The accepted format is similar to the [NetworkX adjacency list

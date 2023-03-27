@@ -1,4 +1,5 @@
 import 'package:graph_layout/graph_layout.dart';
+import 'package:graph_layout/src/data_structures/directed_graph.dart';
 import 'package:graph_layout/src/data_structures/validation.dart';
 import 'package:test/test.dart';
 
@@ -152,6 +153,56 @@ void main() {
         IntegerNode(33),
         IntegerNode(44),
       );
+    });
+  });
+
+  group('Directed data structures', () {
+    late IntegerNode a;
+    late IntegerNode b;
+    late IntegerNode c;
+
+    late DirectedEdge aToC;
+    late DirectedEdge cToA;
+    late DirectedEdge aToC_;
+    late DirectedEdge cToA_;
+    late DirectedEdge aToB;
+
+    setUp(() {
+      a = IntegerNode(1);
+      b = IntegerNode(2);
+      c = IntegerNode(3);
+
+      aToC = DirectedEdge(source: a, target: c);
+      cToA = DirectedEdge(source: c, target: a);
+      aToC_ = DirectedEdge(source: a, target: c);
+      cToA_ = DirectedEdge(source: c, target: a);
+      aToB = DirectedEdge(source: a, target: b);
+    });
+
+    test('Directed edge equality', () {
+      // Do not test self loops.
+
+      // These represent the same edge.
+      expect(aToC == aToC, isTrue);
+      expect(aToC.hashCode, equals(aToC.hashCode));
+      expect(aToC == aToC_, isTrue);
+      expect(aToC.hashCode, equals(aToC_.hashCode));
+
+      // These also represent the same edge.
+      expect(cToA == cToA_, isTrue);
+      expect(cToA.hashCode, equals(cToA_.hashCode));
+
+      // Edges with reversed directions are considered different.
+      expect(aToC == cToA, isFalse);
+      expect(aToC.hashCode, isNot(cToA.hashCode));
+      expect(aToC == cToA_, isFalse);
+      expect(aToC.hashCode, isNot(cToA_.hashCode));
+
+      // These are different edges.
+      expect(aToC == aToB, isFalse);
+      expect(aToC.hashCode, isNot(equals(aToB.hashCode)));
+      expect(cToA == aToB, isFalse);
+      expect(cToA.hashCode, isNot(equals(aToB.hashCode)));
     });
   });
 

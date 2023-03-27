@@ -1,3 +1,4 @@
+import 'package:graph_layout/src/data_structures/directed_graph.dart';
 import 'package:vector_math/vector_math.dart';
 
 import 'data_structures.dart';
@@ -9,12 +10,19 @@ import 'data_structures.dart';
 /// <https://en.wikipedia.org/wiki/Adjacency_list>
 typedef AdjacencyList = Map<Node, Set<Node>>;
 
-/// A description of the topology of a graph.
+/// A description of the topology of an undirected graph.
 ///
 /// Lists each [Edge] of the graph.
 ///
 /// <https://en.wikipedia.org/wiki/Edge_list>
 typedef EdgeList = Set<Edge>;
+
+/// A description of the topology of a directed graph.
+///
+/// Lists each [DirectedEdge] of the graph.
+///
+/// <https://en.wikipedia.org/wiki/Edge_list>
+typedef DirectedEdgeList = Set<DirectedEdge>;
 
 /// A description of the layout of a graph.
 ///
